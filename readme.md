@@ -1,4 +1,4 @@
-# matmul.c: High-Performance Matrix Multiplication
+# High-Performance Matrix Multiplication in C
 <p align="center">
   <img src="assets/logo.jpeg" width="500" height="480" alt="cpu-burn">
 </p>
