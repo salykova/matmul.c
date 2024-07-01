@@ -1,6 +1,6 @@
 # High-Performance Matrix Multiplication in C
 <p align="center">
-  <img src="assets/logo.jpeg" width="500" height="480" alt="cpu-burn">
+  <img src="assets/logo.jpeg" width="75%" alt="cpu-burn">
 </p>
 
 ## Key Features
@@ -14,10 +14,10 @@
 ## Performance
 
 <p align="center">
-  <img src="assets/benchmark_mt.png" alt="cpu-burn">
+  <img src="assets/benchmark_mt.png" alt="cpu-burn" width="80%">
 </p>
 
 
 <p align="center">
-  <img src="assets/benchmark_mt2.png" alt="cpu-burn">
+  <img src="assets/benchmark_mt2.png" alt="cpu-burn" width="80%">
 </p>
