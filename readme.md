@@ -1,6 +1,6 @@
 # matmul.c: High-Performance Matrix Multiplication
 <p align="center">
-  <img src="assets/logo.jpeg" width="400" height="390" alt="cpu-burn">
+  <img src="assets/logo.jpeg" width="500" height="480" alt="cpu-burn">
 </p>
 
 ## Key Features
