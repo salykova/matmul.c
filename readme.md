@@ -18,11 +18,6 @@
 
 Tested on:
 - CPU: Ryzen 7 7700 8 Cores, 16 Threads
-- Freq: 3.8 GHz
-- Turbo Freq: 5.3 GHz
-- L1 Cache: 64 KB (per core)
-- L2 Cache: 1MB (per core)
-- L3 Cache: 32MB (shared), 16-way associative
 - RAM: 32GB DDR5 6000 MHz CL36
 - Numpy 1.26.4
 - Compiler: clang-17
