@@ -1,6 +1,6 @@
 # High-Performance Matrix Multiplication in C
 <p align="center">
-  <img src="assets/logo.jpeg" width="70%" alt="cpu-burn">
+  <img src="assets/logo.jpeg" width="500" height="500" alt="cpu-burn">
 </p>
 
 > **Important!** Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
