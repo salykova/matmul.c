@@ -1,6 +1,6 @@
 # High-Performance Matrix Multiplication in C
 <p align="center">
-  <img src="assets/logo.jpeg" width="300" height="300" alt="cpu-burn">
+  <img src="assets/logo.jpeg" width="50%" alt="cpu-burn">
 </p>
 
 > **Important!** Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
@@ -24,15 +24,6 @@ Tested on:
 - Compiler flags: -O2 -mno-avx512f -march=native
 - OS: Ubuntu 22.04.4 LTS
 
-<p align="center">
-  <img src="assets/benchmark_mt.png" alt="cpu-burn" width="80%">
-</p>
-
-
-<p align="center">
-  <img src="assets/benchmark_mt2.png" alt="cpu-burn" width="80%">
-</p>
-
 To reproduce the results, run:
 ```bash
 python benchmark_numpy.py
@@ -41,3 +32,14 @@ clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out &&
 
 python plot_benchmark.py
 ```
+<p align="center">
+  <img src="assets/benchmark_mt.png" alt="mt1" width="70%">
+</p>
+
+<p align="center">
+  <img src="assets/benchmark_mt2.png" alt="mt2" width="70%">
+</p>
+
+<p align="center">
+  <img src="assets/htop.png" alt="htop" width="70%">
+</p>
