@@ -33,13 +33,13 @@ clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out &&
 python plot_benchmark.py
 ```
 <p align="center">
-  <img src="assets/benchmark_mt.png" alt="mt1" width="70%">
+  <img src="assets/benchmark_mt.png" alt="mt1" width="80%">
 </p>
 
 <p align="center">
-  <img src="assets/benchmark_mt2.png" alt="mt2" width="70%">
+  <img src="assets/benchmark_mt2.png" alt="mt2" width="80%">
 </p>
 
 <p align="center">
-  <img src="assets/htop.png" alt="htop" width="70%">
+  <img src="assets/htop.png" alt="htop" width="80%">
 </p>
