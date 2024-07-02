@@ -6,7 +6,7 @@
 > **Important!** Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 ## Key Features
-- Simple, portable and scalable C code
+- Simple, portable and scalable C code (<150 LOC)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Targets x86 processors with AVX and FMA instructions (=all modern Intel Core and AMD Ryzen CPUs)
 - Faster than NumPy when fine-tuned for Ryzen 7700
