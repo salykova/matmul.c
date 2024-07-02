@@ -1,0 +1,16 @@
+__pycache__
+.venv/
+.vscode
+.*.swp
+.*.swo
+*.pyc
+*.so
+*.txt
+build
+*.egg-info
+*.out
+.idea
+*.prof
+venv
+temp
+*.csv

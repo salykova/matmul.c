@@ -1,4 +1,4 @@
-// clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out && ./benchmark.out
+// clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark_llama.c -o benchmark_llama.out && ./benchmark_llama.out
 #include <immintrin.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -6,9 +6,11 @@
 
 #define MEM_ALIGN 64
 
+// To achieve peak performance, you might need to implement a kernel with a different kernel size.
 #define MR 16
 #define NR 6
 
+// Consider fine-tuning the following parameters for your CPU
 #define NTHREADS 16
 #define MC MR* NTHREADS * 4
 #define NC NR* NTHREADS * 32
@@ -54,10 +56,10 @@ void pack_blockB(float* B, float* blockB_packed, const int nc, const int kc, con
   }
 }
 
-void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, const int M) {
+void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, const int K) {
   for (int p = 0; p < kc; p++) {
     for (int i = 0; i < mr; i++) {
-      *blockA_packed++ = A[p * M + i];
+      *blockA_packed++ = A[i * K + p];
     }
     for (int i = mr; i < MR; i++) {
       *blockA_packed++ = 0;
@@ -65,11 +67,11 @@ void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, con
   }
 }
 
-void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, const int M) {
+void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, const int K) {
 #pragma omp parallel for num_threads(NTHREADS) schedule(static)
   for (int i = 0; i < mc; i += MR) {
     const int mr = min(MR, mc - i);
-    pack_panelA(&A[i], &blockA_packed[i * kc], mr, kc, M);
+    pack_panelA(&A[i * K], &blockA_packed[i * kc], mr, kc, K);
   }
 }
 
@@ -144,7 +146,7 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
   }
 }
 
-void matmul(float* A, float* B, float* C, const int M, const int N, const int K) {
+void matmul_llama(float* A, float* B, float* C, const int M, const int N, const int K) {
   for (int j = 0; j < N; j += NC) {
     const int nc = min(NC, N - j);
     for (int p = 0; p < K; p += KC) {
@@ -152,7 +154,7 @@ void matmul(float* A, float* B, float* C, const int M, const int N, const int K)
       pack_blockB(&B[j * K + p], blockB_packed, nc, kc, K);
       for (int i = 0; i < M; i += MC) {
         const int mc = min(MC, M - i);
-        pack_blockA(&A[p * M + i], blockA_packed, mc, kc, M);
+        pack_blockA(&A[i * K + p], blockA_packed, mc, kc, K);
 #pragma omp parallel for num_threads(NTHREADS) schedule(static)
         for (int jr = 0; jr < nc; jr += NR) {
           const int nr = min(NR, nc - jr);
@@ -202,7 +204,7 @@ int main() {
   float* C = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
   for (int j = 0; j < 20; j++) {
     init_const(C, 0.0, MAXSIZE, MAXSIZE);
-    matmul(A, B, C, MAXSIZE, MAXSIZE, MAXSIZE);
+    matmul_llama(A, B, C, MAXSIZE, MAXSIZE, MAXSIZE);
   }
   _mm_free(A);
   _mm_free(B);
@@ -225,7 +227,7 @@ int main() {
     for (int j = 0; j < NITER; j++) {
       init_const(C, 0.0, mat_size, mat_size);
       uint64_t start = timer();
-      matmul(A, B, C, mat_size, mat_size, mat_size);
+      matmul_llama(A, B, C, mat_size, mat_size, mat_size);
       uint64_t end = timer();
       float exec_time = (end - start) * 1e-9;
       max_exec_time = exec_time > max_exec_time ? exec_time : max_exec_time;

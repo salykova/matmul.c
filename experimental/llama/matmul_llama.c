@@ -1,33 +1,36 @@
-// clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out && ./benchmark.out
+// clang-17 -O2 -mno-avx512f -march=native -fopenmp matmul_llama.c -o matmul_llama.out && ./matmul_llama.out
 #include <immintrin.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
 #define MEM_ALIGN 64
 
+// To achieve peak performance, you might need to implement a kernel with a different kernel size.
 #define MR 16
 #define NR 6
 
+// Consider fine-tuning the following parameters for your CPU
 #define NTHREADS 16
 #define MC MR* NTHREADS * 4
 #define NC NR* NTHREADS * 32
 #define KC 1000
 
+#ifndef MDIM
+#define MDIM 2000
+#endif
+
+#ifndef NDIM
+#define NDIM 2000
+#endif
+
+#ifndef KDIM
+#define KDIM 2000
+#endif
+
 #ifndef NITER
-#define NITER 500
-#endif
-
-#ifndef MINSIZE
-#define MINSIZE 200
-#endif
-
-#ifndef MAXSIZE
-#define MAXSIZE 2000
-#endif
-
-#ifndef NPTS
-#define NPTS 50
+#define NITER 1000
 #endif
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
@@ -54,10 +57,10 @@ void pack_blockB(float* B, float* blockB_packed, const int nc, const int kc, con
   }
 }
 
-void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, const int M) {
+void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, const int K) {
   for (int p = 0; p < kc; p++) {
     for (int i = 0; i < mr; i++) {
-      *blockA_packed++ = A[p * M + i];
+      *blockA_packed++ = A[i * K + p];
     }
     for (int i = mr; i < MR; i++) {
       *blockA_packed++ = 0;
@@ -65,11 +68,11 @@ void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, con
   }
 }
 
-void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, const int M) {
+void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, const int K) {
 #pragma omp parallel for num_threads(NTHREADS) schedule(static)
   for (int i = 0; i < mc; i += MR) {
     const int mr = min(MR, mc - i);
-    pack_panelA(&A[i], &blockA_packed[i * kc], mr, kc, M);
+    pack_panelA(&A[i * K], &blockA_packed[i * kc], mr, kc, K);
   }
 }
 
@@ -144,7 +147,7 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
   }
 }
 
-void matmul(float* A, float* B, float* C, const int M, const int N, const int K) {
+void matmul_llama(float* A, float* B, float* C, const int M, const int N, const int K) {
   for (int j = 0; j < N; j += NC) {
     const int nc = min(NC, N - j);
     for (int p = 0; p < K; p += KC) {
@@ -152,7 +155,7 @@ void matmul(float* A, float* B, float* C, const int M, const int N, const int K)
       pack_blockB(&B[j * K + p], blockB_packed, nc, kc, K);
       for (int i = 0; i < M; i += MC) {
         const int mc = min(MC, M - i);
-        pack_blockA(&A[p * M + i], blockA_packed, mc, kc, M);
+        pack_blockA(&A[i * K + p], blockA_packed, mc, kc, K);
 #pragma omp parallel for num_threads(NTHREADS) schedule(static)
         for (int jr = 0; jr < nc; jr += NR) {
           const int nr = min(NR, nc - jr);
@@ -166,6 +169,26 @@ void matmul(float* A, float* B, float* C, const int M, const int N, const int K)
   }
 }
 
+void matmul_naive(float* A, float* B, float* C, const int M, const int N, const int K) {
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      for (int p = 0; p < K; p++) {
+        C[j * M + i] += A[i * K + p] * B[j * K + p];
+      }
+    }
+  }
+}
+
+void print_mat(float* mat, const int M, const int N) {
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      printf("%f ", mat[i * N + j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}
+
 void init_rand(float* mat, const int M, const int N) {
   for (int i = 0; i < M * N; i++) {
     *mat++ = rand() / (float)RAND_MAX;
@@ -173,9 +196,24 @@ void init_rand(float* mat, const int M, const int N) {
 }
 
 void init_const(float* mat, const float value, const int M, const int N) {
-  for (int i = 0; i < M * N; i++) {
-    *mat++ = value;
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      *mat++ = value;
+    }
   }
+}
+
+void compare_mats(float* mat1, float* mat2, const int M, const int N) {
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-4) {
+        printf("MISMATCH! Element[%d][%d] %f != %f\n", i, j, mat1[j * M + i], mat2[j * M + i]);
+        return;
+      }
+    }
+  }
+  printf("MATCH!\n");
+  return;
 }
 
 uint64_t timer() {
@@ -185,74 +223,42 @@ uint64_t timer() {
 }
 
 int main() {
-  int avg_gflops[NPTS];
-  int min_gflops[NPTS];
-  int max_gflops[NPTS];
+  const int M = MDIM;
+  const int N = NDIM;
+  const int K = KDIM;
+  float* A = (float*)_mm_malloc(M * K * sizeof(float), MEM_ALIGN);
+  float* B = (float*)_mm_malloc(K * N * sizeof(float), MEM_ALIGN);
+  float* C = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
+  float* C_ref = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
+  init_rand(A, M, K);
+  init_rand(B, K, N);
 
-  int mat_sizes[NPTS];
-  double size_increment = (double)(MAXSIZE - MINSIZE) / (NPTS - 1);
-  for (int i = 0; i < NPTS - 1; i++) {
-    mat_sizes[i] = MINSIZE + i * size_increment;
-  }
-  mat_sizes[NPTS - 1] = MAXSIZE;
+#ifdef TEST
+  matmul_naive(A, B, C_ref, M, N, K);
+#endif
+  double FLOP = 2 * (double)M * N * K;
 
-  // Warmup
-  float* A = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
-  float* B = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
-  float* C = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
-  for (int j = 0; j < 20; j++) {
-    init_const(C, 0.0, MAXSIZE, MAXSIZE);
-    matmul(A, B, C, MAXSIZE, MAXSIZE, MAXSIZE);
+  for (int i = 0; i < NITER; i++) {
+    init_const(C, 0.0, M, N);
+    uint64_t start = timer();
+    matmul_llama(A, B, C, M, N, K);
+    uint64_t end = timer();
+
+    double exec_time = (end - start) * 1e-9;
+    double FLOPS = FLOP / exec_time;
+
+    printf("Exec. time = %.3fms\n", exec_time * 1000);
+    printf("GFLOPS = %.3f\n", FLOPS / 1e9);
+#ifdef TEST
+    compare_mats(C, C_ref, M, N);
+#endif
+    printf("\n");
   }
+
   _mm_free(A);
   _mm_free(B);
   _mm_free(C);
+  _mm_free(C_ref);
 
-  for (int i = 0; i < NPTS; i++) {
-    int mat_size = mat_sizes[i];
-    float* A = (float*)_mm_malloc(mat_size * mat_size * sizeof(float), MEM_ALIGN);
-    float* B = (float*)_mm_malloc(mat_size * mat_size * sizeof(float), MEM_ALIGN);
-    float* C = (float*)_mm_malloc(mat_size * mat_size * sizeof(float), MEM_ALIGN);
-
-    init_rand(A, mat_size, mat_size);
-    init_rand(B, mat_size, mat_size);
-
-    double FLOP = 2 * (double)mat_size * mat_size * mat_size;
-    double avg_exec_time = 0;
-    double max_exec_time = 0;
-    double min_exec_time = 1e69;
-
-    for (int j = 0; j < NITER; j++) {
-      init_const(C, 0.0, mat_size, mat_size);
-      uint64_t start = timer();
-      matmul(A, B, C, mat_size, mat_size, mat_size);
-      uint64_t end = timer();
-      float exec_time = (end - start) * 1e-9;
-      max_exec_time = exec_time > max_exec_time ? exec_time : max_exec_time;
-      min_exec_time = exec_time < min_exec_time ? exec_time : min_exec_time;
-      avg_exec_time += exec_time;
-    }
-
-    avg_exec_time /= NITER;
-    avg_gflops[i] = (int)(FLOP / avg_exec_time / 1e9);
-    max_gflops[i] = (int)(FLOP / min_exec_time / 1e9);
-    min_gflops[i] = (int)(FLOP / max_exec_time / 1e9);
-
-    _mm_free(A);
-    _mm_free(B);
-    _mm_free(C);
-  }
-
-  FILE* fptr;
-  const char* filename = "benchmark_c.txt";
-  fptr = fopen(filename, "w");
-  if (fptr == NULL) {
-    printf("Error opening the file %s", filename);
-    return -1;
-  }
-  for (int i = 0; i < NPTS; i++) {
-    fprintf(fptr, "%i %i %i %i\n", mat_sizes[i], min_gflops[i], max_gflops[i], avg_gflops[i]);
-  }
-  fclose(fptr);
   return 0;
 }
