@@ -1,12 +1,12 @@
-# High-Performance Matrix Multiplication in C
+# High-Performance Matrix Multiplication for CPUs
 <p align="center">
   <img src="assets/logo.jpeg" width="50%" alt="cpu-burn">
 </p>
 
-> **Important!** Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
+> **Important!** The code must be compiled with Clang. Using GCC causes the program to run 1.5 to 2 times slower on my machine. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 ## Key Features
-- Simple, portable and scalable C code (<150 LOC)
+- Simple and scalable C code (<150 LOC)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Targets x86 processors with AVX and FMA instructions (=all modern Intel Core and AMD Ryzen CPUs)
 - Faster than NumPy when fine-tuned for Ryzen 7700
@@ -20,8 +20,8 @@ Tested on:
 - CPU: Ryzen 7 7700 8 Cores, 16 Threads
 - RAM: 32GB DDR5 6000 MHz CL36
 - Numpy 1.26.4
-- Compiler: clang-17
-- Compiler flags: -O2 -mno-avx512f -march=native
+- Compiler: `clang-17`
+- Compiler flags: `-O2 -mno-avx512f -march=native`
 - OS: Ubuntu 22.04.4 LTS
 
 To reproduce the results, run:
