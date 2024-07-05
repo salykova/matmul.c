@@ -6,7 +6,7 @@
 - Simple and scalable C code (<150 LOC)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Targets x86 processors with AVX and FMA instructions (=all modern Intel Core and AMD Ryzen CPUs)
-- Faster than NumPy when fine-tuned for Ryzen 7700
+- Faster than OpenBLAS when fine-tuned for Ryzen 7700
 - Efficiently parallelized with just 3 lines of OpenMP directives
 - Follows the [BLIS](https://github.com/flame/blis) design
 - Works for arbitrary matrix sizes
