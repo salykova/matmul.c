@@ -23,6 +23,9 @@ clang-17 -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out &
 ```
 
 ## Performance
+<p align="center">
+  <img src="assets/matmul_perf.png" alt="mt1" width="80%">
+</p>
 
 Tested on:
 - CPU: Ryzen 7 7700 8 Cores, 16 Threads
@@ -40,10 +43,6 @@ clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out &&
 
 python plot_benchmark.py
 ```
-<p align="center">
-  <img src="assets/matmul_perf.png" alt="mt1" width="80%">
-</p>
-
 <p align="center">
   <img src="assets/htop.png" alt="htop" width="80%">
 </p>
