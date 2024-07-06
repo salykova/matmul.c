@@ -1,6 +1,6 @@
 # High-Performance Matrix Multiplication on CPUs
 
-> **Important!** The code must be compiled with Clang. Using GCC causes the program to run 1.5 to 2 times slower on my machine. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
+> **Important!** The code should be compiled with Clang. GCC causes the program to run 1.5 to 2 times slower on my machine. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you are running it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 ## Key Features
 - Simple and scalable C code (<150 LOC)
@@ -11,6 +11,9 @@
 - Follows the [BLIS](https://github.com/flame/blis) design
 - Works for arbitrary matrix sizes
 - Intuitive API `void matmul(float* A, float* B, float* C, const int M, const int N, const int K)`
+
+For quick testing, fine-tuning, and prototyping, use the standalone implementation `matmul.c` in the main folder.
+
 ## Performance
 
 Tested on:
@@ -30,11 +33,7 @@ clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out &&
 python plot_benchmark.py
 ```
 <p align="center">
-  <img src="assets/benchmark_mt.png" alt="mt1" width="80%">
-</p>
-
-<p align="center">
-  <img src="assets/benchmark_mt2.png" alt="mt2" width="80%">
+  <img src="assets/matmul_perf.png" alt="mt1" width="80%">
 </p>
 
 <p align="center">

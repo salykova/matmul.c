@@ -1,4 +1,3 @@
-// clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out && ./benchmark.out
 #include <immintrin.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -8,22 +7,18 @@
 
 #define MR 16
 #define NR 6
-
 #define NTHREADS 16
-#define MC MR* NTHREADS * 4
-#define NC NR* NTHREADS * 32
-#define KC 1000
 
-#ifndef NITER
-#define NITER 500
-#endif
+#define MC MR*NTHREADS*4
+#define NC NR*NTHREADS*32
+#define KC 1000
 
 #ifndef MINSIZE
 #define MINSIZE 200
 #endif
 
 #ifndef MAXSIZE
-#define MAXSIZE 2000
+#define MAXSIZE 5000
 #endif
 
 #ifndef NPTS
@@ -32,6 +27,8 @@
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
+static int8_t mask[32] __attribute__((aligned(MEM_ALIGN))) = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+                                                              0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 static float blockA_packed[MC * KC] __attribute__((aligned(MEM_ALIGN)));
 static float blockB_packed[NC * KC] __attribute__((aligned(MEM_ALIGN)));
 
@@ -73,25 +70,18 @@ void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, con
   }
 }
 
-void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int m, const int n, const int k,
-                 const int M) {
-
+void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int m, const int n, const int k, const int M) {
   __m256 C_buffer[2][6];
   __m256 b_packFloat8;
   __m256 a0_packFloat8;
   __m256 a1_packFloat8;
-  __m256i masks[2];
-
-  if (m != MR) {
-    const unsigned int bit_mask = 65535;
-    masks[0] = _mm256_setr_epi32(bit_mask << (m + 15), bit_mask << (m + 14), bit_mask << (m + 13), bit_mask << (m + 12),
-                                 bit_mask << (m + 11), bit_mask << (m + 10), bit_mask << (m + 9), bit_mask << (m + 8));
-    masks[1] = _mm256_setr_epi32(bit_mask << (m + 7), bit_mask << (m + 6), bit_mask << (m + 5), bit_mask << (m + 4),
-                                 bit_mask << (m + 3), bit_mask << (m + 2), bit_mask << (m + 1), bit_mask << m);
-
+  __m256i packed_masks[2];
+  if (m != 16) {
+    packed_masks[0] = _mm256_cvtepi8_epi32(_mm_loadu_si64(&mask[16 - m]));
+    packed_masks[1] = _mm256_cvtepi8_epi32(_mm_loadu_si64(&mask[16 - m + 8]));
     for (int j = 0; j < n; j++) {
-      C_buffer[0][j] = _mm256_maskload_ps(&C[j * M], masks[0]);
-      C_buffer[1][j] = _mm256_maskload_ps(&C[j * M + 8], masks[1]);
+      C_buffer[0][j] = _mm256_maskload_ps(&C[j * M], packed_masks[0]);
+      C_buffer[1][j] = _mm256_maskload_ps(&C[j * M + 8], packed_masks[1]);
     }
   } else {
     for (int j = 0; j < n; j++) {
@@ -100,7 +90,6 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
     }
   }
   for (int p = 0; p < k; p++) {
-
     a0_packFloat8 = _mm256_loadu_ps(blockA_packed);
     a1_packFloat8 = _mm256_loadu_ps(blockA_packed + 8);
 
@@ -128,13 +117,13 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
     C_buffer[0][5] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[0][5]);
     C_buffer[1][5] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[1][5]);
 
-    blockA_packed += MR;
-    blockB_packed += NR;
+    blockA_packed += 16;
+    blockB_packed += 6;
   }
-  if (m != MR) {
+  if (m != 16) {
     for (int j = 0; j < n; j++) {
-      _mm256_maskstore_ps(&C[j * M], masks[0], C_buffer[0][j]);
-      _mm256_maskstore_ps(&C[j * M + 8], masks[1], C_buffer[1][j]);
+      _mm256_maskstore_ps(&C[j * M], packed_masks[0], C_buffer[0][j]);
+      _mm256_maskstore_ps(&C[j * M + 8], packed_masks[1], C_buffer[1][j]);
     }
   } else {
     for (int j = 0; j < n; j++) {
@@ -173,8 +162,10 @@ void init_rand(float* mat, const int M, const int N) {
 }
 
 void init_const(float* mat, const float value, const int M, const int N) {
-  for (int i = 0; i < M * N; i++) {
-    *mat++ = value;
+  for (int i = 0; i < M; i++) {
+    for (int j = 0; j < N; j++) {
+      *mat++ = value;
+    }
   }
 }
 
@@ -188,11 +179,11 @@ int main() {
   int avg_gflops[NPTS];
   int min_gflops[NPTS];
   int max_gflops[NPTS];
-
   int mat_sizes[NPTS];
-  double size_increment = (double)(MAXSIZE - MINSIZE) / (NPTS - 1);
+
+  double delta_size = (double)(MAXSIZE - MINSIZE) / (NPTS - 1);
   for (int i = 0; i < NPTS - 1; i++) {
-    mat_sizes[i] = MINSIZE + i * size_increment;
+    mat_sizes[i] = MINSIZE + i * delta_size;
   }
   mat_sizes[NPTS - 1] = MAXSIZE;
 
@@ -200,7 +191,7 @@ int main() {
   float* A = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
   float* B = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
   float* C = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEM_ALIGN);
-  for (int j = 0; j < 20; j++) {
+  for (int j = 0; j < 5; j++) {
     init_const(C, 0.0, MAXSIZE, MAXSIZE);
     matmul(A, B, C, MAXSIZE, MAXSIZE, MAXSIZE);
   }
@@ -221,8 +212,8 @@ int main() {
     double avg_exec_time = 0;
     double max_exec_time = 0;
     double min_exec_time = 1e69;
-
-    for (int j = 0; j < NITER; j++) {
+    int n_iter = (int)(100000 / mat_size);
+    for (int j = 0; j < n_iter; j++) {
       init_const(C, 0.0, mat_size, mat_size);
       uint64_t start = timer();
       matmul(A, B, C, mat_size, mat_size, mat_size);
@@ -233,7 +224,7 @@ int main() {
       avg_exec_time += exec_time;
     }
 
-    avg_exec_time /= NITER;
+    avg_exec_time /= n_iter;
     avg_gflops[i] = (int)(FLOP / avg_exec_time / 1e9);
     max_gflops[i] = (int)(FLOP / min_exec_time / 1e9);
     min_gflops[i] = (int)(FLOP / max_exec_time / 1e9);

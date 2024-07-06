@@ -13,14 +13,14 @@ if __name__ == "__main__":
 
     if "benchmark_c.txt" in benchmark_data:
         mat_sizes, min_gflops_c, max_gflops_c, avg_gflops_c = np.loadtxt("benchmark_c.txt").T
-        plt.plot(mat_sizes, avg_gflops_c, "-*", label="matmul.c AVG")
+        plt.plot(mat_sizes, avg_gflops_c, "-*", label="matmul.c MEAN")
         plt.plot(mat_sizes, max_gflops_c, "-*", label="matmul.c PEAK")
         # plt.plot(mat_sizes, min_gflops_c, "-*", label="C MIN")
         # ax.fill_between(mat_sizes, min_gflops_c, max_gflops_c, alpha=0.2)
 
     if "benchmark_numpy.txt" in benchmark_data:
         mat_sizes, min_gflops_numpy, max_gflops_numpy, avg_gflops_numpy = np.loadtxt("benchmark_numpy.txt").T
-        plt.plot(mat_sizes, avg_gflops_numpy, "-*", label="NumPy(=OpenBLAS) AVG")
+        plt.plot(mat_sizes, avg_gflops_numpy, "-*", label="NumPy(=OpenBLAS) MEAN")
         plt.plot(mat_sizes, max_gflops_numpy, "-*", label="NumPy(=OpenBLAS) PEAK")
         # plt.plot(mat_sizes, min_gflops_numpy, "-*", label="NUMPY MIN")
         # ax.fill_between(mat_sizes, min_gflops_numpy, max_gflops_numpy, alpha=0.2)
