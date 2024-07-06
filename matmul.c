@@ -198,7 +198,7 @@ void init_const(float* mat, const float value, const int M, const int N) {
 void compare_mats(float* mat1, float* mat2, const int M, const int N) {
   for (int i = 0; i < M; i++) {
     for (int j = 0; j < N; j++) {
-      if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-4) {
+      if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-8) {
         printf("MISMATCH! Element[%d][%d] %f != %f\n", i, j, mat1[j * M + i], mat2[j * M + i]);
         return;
       }

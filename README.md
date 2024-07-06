@@ -12,7 +12,15 @@
 - Works for arbitrary matrix sizes
 - Intuitive API `void matmul(float* A, float* B, float* C, const int M, const int N, const int K)`
 
-For quick testing, fine-tuning, and prototyping, use the standalone implementation `matmul.c` in the main folder.
+## How to use
+For quick testing, fine-tuning, and prototyping, use the standalone file `matmul.c` in the main folder:
+```
+clang-17 -O2 -mno-avx512f -fopenmp -march=native matmul.c -o matmul.out && ./matmul.out
+```
+To verify the numerial accuracy of the implementation, add `-DTEST`:
+```
+clang-17 -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out && ./matmul.out
+```
 
 ## Performance
 
