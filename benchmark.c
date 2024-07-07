@@ -213,7 +213,7 @@ int main() {
     double avg_exec_time = 0;
     double max_exec_time = 0;
     double min_exec_time = 1e69;
-    int n_iter = (int)(100000 / mat_size);
+    int n_iter = (int)(200000 / mat_size);
     for (int j = 0; j < n_iter; j++) {
       init_const(C, 0.0, mat_size, mat_size);
       uint64_t start = timer();

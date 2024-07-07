@@ -44,7 +44,7 @@ if __name__ == "__main__":
         max_exec_time = -np.inf
         A = np.random.randn(MAT_SIZES[i], MAT_SIZES[i]).astype(np.float32)
         B = np.random.randn(MAT_SIZES[i], MAT_SIZES[i]).astype(np.float32)
-        n_iter = int(100_000 / MAT_SIZES[i])
+        n_iter = int(200_000 / MAT_SIZES[i])
         for _ in range(n_iter):
             start = time.perf_counter()
             C = A @ B
