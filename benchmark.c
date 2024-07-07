@@ -10,8 +10,8 @@
 #define NR 6
 #define NTHREADS 16
 
-#define MC MR*NTHREADS*4
-#define NC NR*NTHREADS*32
+#define MC MR* NTHREADS * 4
+#define NC NR* NTHREADS * 32
 #define KC 1000
 
 #ifndef MINSIZE
