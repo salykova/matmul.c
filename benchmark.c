@@ -1,3 +1,4 @@
+// clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out && ./benchmark.out
 #include <immintrin.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -1,4 +1,5 @@
 // Standalone matmul implementation for quick prototyping and testing
+// clang-17 -O2 -mno-avx512f -fopenmp -march=native matmul.c -o matmul.out && ./matmul.out
 #include <immintrin.h>
 #include <math.h>
 #include <stdint.h>
@@ -217,7 +218,7 @@ uint64_t timer() {
 int main() {
 
 #if ((MR != 16) || (NR != 6))
-  printf("Error! Kernel size mismatch, MR=%i, NR=%i. Consider re-implementing the kernel.\n", MR, NR);
+  printf("Error! Kernel size mismatch, MR != 16 or NR != 6. Consider re-implementing the kernel.\n");
   return -1;
 #endif
 
