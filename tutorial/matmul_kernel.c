@@ -24,7 +24,7 @@
 #endif
 
 #ifndef NITER
-#define NITER 5
+#define NITER 100
 #endif
 
 void kernel_16x6(float* A, float* B, float* C, const int M, const int N, const int K) {

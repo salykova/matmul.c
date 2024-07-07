@@ -22,7 +22,7 @@
 #endif
 
 #ifndef NITER
-#define NITER 5
+#define NITER 100
 #endif
 
 #define MR 16
