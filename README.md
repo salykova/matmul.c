@@ -4,12 +4,12 @@
 
 ## Key Features
 - Simple and scalable C code (<150 LOC)
+- Works for arbitrary matrix sizes
+- Faster than OpenBLAS (tested on Ryzen 7700)
+- Targets x86 processors with AVX2 and FMA3 instructions (=all modern Intel Core and AMD Ryzen CPUs)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
-- Targets x86 processors with AVX and FMA instructions (=all modern Intel Core and AMD Ryzen CPUs)
-- Faster than OpenBLAS when fine-tuned for Ryzen 7700
 - Efficiently parallelized with just 3 lines of OpenMP directives
 - Follows the [BLIS](https://github.com/flame/blis) design
-- Works for arbitrary matrix sizes
 - Intuitive API `void matmul(float* A, float* B, float* C, const int M, const int N, const int K)`
 
 ## How to use
