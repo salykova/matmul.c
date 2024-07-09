@@ -17,7 +17,7 @@ For quick testing, fine-tuning, and prototyping, use the standalone file `matmul
 ```
 clang-17 -O2 -mno-avx512f -fopenmp -march=native matmul.c -o matmul.out && ./matmul.out
 ```
-To verify the numerial accuracy of the implementation, add `-DTEST`:
+To verify the numerial accuracy, add `-DTEST`:
 ```
 clang-17 -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out && ./matmul.out
 ```
