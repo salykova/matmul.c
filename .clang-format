@@ -4,4 +4,4 @@ BasedOnStyle: LLVM
 Language: Cpp
 DerivePointerAlignment: false
 PointerAlignment: Left
-ColumnLimit: 130
+ColumnLimit: 100
