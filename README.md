@@ -5,7 +5,7 @@
 ## Key Features
 - Simple and scalable C code (<150 LOC)
 - Works for arbitrary matrix sizes
-- Faster than OpenBLAS (tested on Ryzen 7700)
+- Faster than OpenBLAS and MKL (tested on Ryzen 7700)
 - Targets x86 processors with AVX2 and FMA3 instructions (=all modern Intel Core and AMD Ryzen CPUs)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Efficiently parallelized with just 3 lines of OpenMP directives
@@ -23,9 +23,6 @@ clang-17 -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out &
 ```
 
 ## Performance
-<p align="center">
-  <img src="assets/matmul_perf.png" alt="mt1" width="80%">
-</p>
 
 Tested on:
 - CPU: Ryzen 7 7700 8 Cores, 16 Threads
@@ -34,6 +31,15 @@ Tested on:
 - Compiler: `clang-17`
 - Compiler flags: `-O2 -mno-avx512f -march=native`
 - OS: Ubuntu 22.04.4 LTS
+
+<p align="center">
+  <img src="assets/perf_vs_openblas.png" alt="mt1" width="80%">
+</p>
+
+<p align="center">
+  <img src="assets/perf_vs_mkl.png" alt="mt1" width="80%">
+</p>
+
 
 To reproduce the results, run:
 ```bash

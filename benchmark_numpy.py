@@ -6,6 +6,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument("-MINSIZE", "--MIN-SIZE", type=int, default=200)
 parser.add_argument("-MAXSIZE", "--MAX-SIZE", type=int, default=5000)
+parser.add_argument("-WITER", "--WARMUP-ITER", type=int, default=15)
 parser.add_argument("-NPTS", "--NUM-PTS", type=int, default=50)
 parser.add_argument("-ST", "--SINGLE-THREAD", action="store_true")
 parser.add_argument("-SHOWFIG", "--SHOW-FIG", action="store_true")
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     # Warmup
     A = np.random.randn(MAX_SIZE, MAX_SIZE).astype(np.float32)
     B = np.random.randn(MAX_SIZE, MAX_SIZE).astype(np.float32)
-    for _ in tqdm(range(5), desc="Warmup"):
+    for _ in tqdm(range(args.WARMUP_ITER), desc="Warmup"):
         C = A @ B
 
     for i in tqdm(range(len(MAT_SIZES)), desc="Benchmark"):
