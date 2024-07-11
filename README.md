@@ -33,11 +33,11 @@ Tested on:
 - OS: Ubuntu 22.04.4 LTS
 
 <p align="center">
-  <img src="assets/perf_vs_openblas.png" alt="mt1" width="80%">
+  <img src="assets/perf_vs_openblas.png" alt="openblas" width="85%">
 </p>
 
 <p align="center">
-  <img src="assets/perf_vs_mkl.png" alt="mt1" width="80%">
+  <img src="assets/perf_vs_mkl.png" alt="mkl" width="85%">
 </p>
 
 To reproduce the results, run:
