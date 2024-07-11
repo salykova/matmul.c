@@ -55,7 +55,7 @@ Tested on:
   <img src="assets/perf_vs_mkl.png" alt="mkl" width="85%">
 </p>
 
-To run the benchmark, compile `benchmark.c` using `clang`. Parameters `NTHREADS`, `MR`, `NR` , `MC`, `NC`, `KC` can be defined in [CMakeLists.txt](https://github.com/salykova/matmul.c/blob/main/src/CMakeLists.txt) or via command line as shown below:
+To benchmark the code, compile `benchmark.c` using `clang`. Parameters `NTHREADS`, `MR`, `NR` , `MC`, `NC`, `KC` can be defined in [CMakeLists.txt](https://github.com/salykova/matmul.c/blob/main/src/CMakeLists.txt) or via command line as shown below:
 ```bash
 export CC=/usr/bin/clang
 cmake -B build -S . -DMR=16 -DNR=6 -DNTHREADS=16
