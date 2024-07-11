@@ -5,7 +5,6 @@ __pycache__
 .*.swo
 *.pyc
 *.so
-*.txt
 build
 *.egg-info
 *.out
@@ -14,3 +13,4 @@ build
 venv
 temp
 *.csv
+.cache

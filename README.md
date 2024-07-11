@@ -12,14 +12,29 @@
 - Follows the [BLIS](https://github.com/flame/blis) design
 - Intuitive API `void matmul(float* A, float* B, float* C, const int M, const int N, const int K)`
 
-## How to use
+## Installation
+Install the following packages via `apt` if you are using a Debian-based Linux distribution
+```bash
+sudo apt-get install clang cmake build-essential python3-dev python3-pip libomp-dev
+```
+Create the virtual environment via `pip` or `conda` e.g.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+and install the following Python dependencies
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Usage
 For quick testing, fine-tuning, and prototyping, use the standalone file `matmul.c` in the main folder:
 ```
-clang-17 -O2 -mno-avx512f -fopenmp -march=native matmul.c -o matmul.out && ./matmul.out
+clang -O2 -mno-avx512f -fopenmp -march=native matmul.c -o matmul.out && ./matmul.out
 ```
 To verify the numerial accuracy, add `-DTEST`:
 ```
-clang-17 -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out && ./matmul.out
+clang -O2 -mno-avx512f -fopenmp -march=native -DTEST matmul.c -o matmul.out && ./matmul.out
 ```
 
 ## Performance
@@ -40,14 +55,21 @@ Tested on:
   <img src="assets/perf_vs_mkl.png" alt="mkl" width="85%">
 </p>
 
+To run the benchmark, compile `benchmark.c` using `clang`. Parameters `NTHREADS`, `MR`, `NR` , `MC`, `NC`, `KC` can be defined in [CMakeLists.txt](https://github.com/salykova/matmul.c/blob/main/src/CMakeLists.txt) or via command line as shown below:
+```bash
+export CC=/usr/bin/clang
+cmake -B build -S . -DMR=16 -DNR=6 -DNTHREADS=16
+cmake --build build
+```
 To reproduce the results, run:
 ```bash
 python benchmark_numpy.py
 
-clang-17 -O2 -mno-avx512f -march=native -fopenmp benchmark.c -o benchmark.out && ./benchmark.out
+./build/benchmark MINSIZE MAXSIZE NPTS WARMUP
 
 python plot_benchmark.py
 ```
+If not manually specified, default values are `MINSIZE=200`, `MAXSIZE=5000`, `NPTS=50`, `WARMUP=15`.
 <p align="center">
   <img src="assets/htop.png" alt="htop" width="80%">
 </p>
