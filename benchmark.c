@@ -36,8 +36,7 @@ int main(int argc, char* argv[]) {
         MAXSIZE = 5000;
         NPTS = 50;
         WARMUP = 15;
-    }
-    else {
+    } else {
         MINSIZE = atoi(argv[1]);
         MAXSIZE = atoi(argv[2]);
         NPTS = atoi(argv[3]);
