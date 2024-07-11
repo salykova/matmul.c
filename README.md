@@ -17,12 +17,12 @@ Install the following packages via `apt` if you are using a Debian-based Linux d
 ```bash
 sudo apt-get install clang cmake build-essential python3-dev python3-pip libomp-dev
 ```
-Create the virtual environment via `pip` or `conda` e.g.
+Create the virtual environment using `pip` or `conda` e.g.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
-and install the following Python dependencies
+and install the Python dependencies
 ```bash
 python -m pip install -r requirements.txt
 ```
