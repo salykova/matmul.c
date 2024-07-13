@@ -5,7 +5,7 @@
 ## Key Features
 - Simple and scalable C code (<150 LOC)
 - Works for arbitrary matrix sizes
-- Faster than NumPy with OpenBLAS and MKL backends (tested on Ryzen 7700)
+- Faster than OpenBLAS and MKL backends (tested on Ryzen 7700)
 - Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Efficiently parallelized with just 3 lines of OpenMP directives
 - Targets x86 processors with AVX2 and FMA3 instructions (=all modern Intel Core and AMD Ryzen CPUs)
