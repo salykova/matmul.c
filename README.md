@@ -76,4 +76,4 @@ If not manually specified, default values are `MINSIZE=200`, `MAXSIZE=5000`, `NP
   <img src="assets/htop.png" alt="htop" width="80%">
 </p>
 
-In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For CPUs with many cores (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
+In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For manycore processors (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
