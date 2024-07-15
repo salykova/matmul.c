@@ -27,6 +27,7 @@ uint64_t timer() {
 }
 
 int main(int argc, char* argv[]) {
+    srand(time(NULL));
     int MINSIZE;
     int MAXSIZE;
     int NPTS;

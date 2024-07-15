@@ -220,13 +220,13 @@ uint64_t timer() {
 }
 
 int main() {
-
 #if ((MR != 16) || (NR != 6))
     printf(
         "Error! Kernel size mismatch, MR != 16 or NR != 6. Consider re-implementing the kernel.\n");
     return -1;
 #endif
 
+    srand(time(NULL));
     const int M = MDIM;
     const int N = NDIM;
     const int K = KDIM;
