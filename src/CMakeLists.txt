@@ -1,4 +1,4 @@
-add_library(matmul avx2_kernels.c matmul.c)
+add_library(matmul matmul.c)
 
 set(kernels "16x6" "8x12" "8x13" "8x14" "8x8")
 
