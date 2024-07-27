@@ -1,3 +1,3 @@
-## Beating NumPy's Matrix Multiplication in 150 Lines of C Code
+## Optimized Multi-Threaded Matrix Multiplication on CPU: A Comprehensive Guide
 
 [https://salykova.github.io/matmul-cpu](https://salykova.github.io/matmul-cpu)
