@@ -5,10 +5,10 @@
 >In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For manycore processors (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
 
 ## Key Features
+- Step by step [tutorial](https://salykova.github.io/matmul-cpu)
 - Simple and scalable C code (<150 LOC)
 - Supports arbitrary matrix sizes
-- Faster than NumPy with OpenBLAS and MKL backends (tested on Ryzen 7700)
-- Step by step [tutorial](https://salykova.github.io/matmul-cpu)
+- Faster than NumPy with OpenBLAS and MKL backends on Ryzen 7700
 - Efficiently parallelized with just 3 lines of OpenMP directives
 - Targets x86 processors with AVX2 and FMA3 instructions (=all modern Intel Core and AMD Ryzen CPUs)
 - Follows the [BLIS](https://github.com/flame/blis) design
