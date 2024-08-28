@@ -72,8 +72,3 @@ python benchmark_numpy.py
 python plot_benchmark.py
 ```
 If not manually specified, default values are `MINSIZE=200`, `MAXSIZE=5000`, `NPTS=50`, `WARMUP=15`.
-
-**CPU utilization**:
-<p align="center">
-  <img src="assets/htop.png" alt="htop" width="80%">
-</p>
