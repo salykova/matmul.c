@@ -21,11 +21,11 @@ if(NOT DEFINED NTHREADS)
 endif()
 
 if(NOT DEFINED MC)
-  math(EXPR MC ${MR}*${NTHREADS}*4)
+  math(EXPR MC ${MR}*${NTHREADS}*1)
 endif()
 
 if(NOT DEFINED NC)
-  math(EXPR NC ${NR}*${NTHREADS}*32)
+  math(EXPR NC ${NR}*${NTHREADS}*80)
 endif()
 
 if(NOT DEFINED KC)
