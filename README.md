@@ -1,6 +1,6 @@
 # High-Performance Matrix Multiplication on CPU
 
-> **Important!** The code should be compiled with Clang. GCC causes the program to run 1.5 to 2 times slower on my machine. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
+> **Important!** If you compile the code with GCC, use the implementation from `matmul_gcc.c`. If CLANG - it's recommended to use more compact implementation from `matmul.c`. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 >In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For manycore processors (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
 
