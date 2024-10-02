@@ -33,42 +33,41 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
     __m256 b_packFloat8;
     __m256 a0_packFloat8;
     __m256 a1_packFloat8;
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < NR; j++) {
         C_buffer[j][0] = _mm256_loadu_ps(&C[j * M]);
         C_buffer[j][1] = _mm256_loadu_ps(&C[j * M + 8]);
     }
     for (int p = 0; p < K; p++) {
-        a0_packFloat8 = _mm256_loadu_ps(blockA_packed);
-        a1_packFloat8 = _mm256_loadu_ps(blockA_packed + 8);
+        a0_packFloat8 = _mm256_loadu_ps(blockA_packed + p * M);
+        a1_packFloat8 = _mm256_loadu_ps(blockA_packed + p * M + 8);
 
         b_packFloat8 = _mm256_broadcast_ss(blockB_packed);
         C_buffer[0][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[0][0]);
         C_buffer[0][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[0][1]);
 
-        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 1);
+        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + K);
         C_buffer[1][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[1][0]);
         C_buffer[1][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[1][1]);
 
-        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 2);
+        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 2 * K);
         C_buffer[2][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[2][0]);
         C_buffer[2][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[2][1]);
 
-        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 3);
+        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 3 * K);
         C_buffer[3][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[3][0]);
         C_buffer[3][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[3][1]);
 
-        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 4);
+        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 4 * K);
         C_buffer[4][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[4][0]);
         C_buffer[4][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[4][1]);
 
-        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 5);
+        b_packFloat8 = _mm256_broadcast_ss(blockB_packed + 5 * K);
         C_buffer[5][0] = _mm256_fmadd_ps(a0_packFloat8, b_packFloat8, C_buffer[5][0]);
         C_buffer[5][1] = _mm256_fmadd_ps(a1_packFloat8, b_packFloat8, C_buffer[5][1]);
 
-        blockA_packed += 16;
-        blockB_packed += 6;
+        blockB_packed += 1;
     }
-    for (int j = 0; j < N; j++) {
+    for (int j = 0; j < NR; j++) {
         _mm256_storeu_ps(&C[j * M], C_buffer[j][0]);
         _mm256_storeu_ps(&C[j * M + 8], C_buffer[j][1]);
     }
