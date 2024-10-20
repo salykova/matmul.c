@@ -1,4 +1,4 @@
-# TFLOPS Matrix Multiplication on an 8-core CPU in C from Scratch
+# Fast, Multi-threaded Matrix Multiplication in C from Scratch
 
 > **Important!** If you compile the code with GCC, use the implementation from `matmul_gcc.c`. If CLANG - it's easier to use more compact implementation from `matmul.c`. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
