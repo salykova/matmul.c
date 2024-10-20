@@ -1,11 +1,11 @@
 # High-Performance Matrix Multiplication on CPU
 
-> **Important!** If you compile the code with GCC, use the implementation from `matmul_gcc.c`. If CLANG - it's easier to use more compact implementation from `matmul.c`. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
+> **Important!** If you compile the code with GCC, use the implementation from `matmul_gcc.c`. If CLANG - it's easier to use more compact implementation from `matmul.c`. Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-c).
 
 >In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For manycore processors (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
 
 ## Key Features
-- Step by step [tutorial](https://salykova.github.io/matmul-cpu)
+- Step by step [tutorial](https://salykova.github.io/matmul-c)
 - Simple and scalable C code (<150 LOC)
 - Supports arbitrary matrix sizes
 - Faster than NumPy with OpenBLAS and MKL backends on Ryzen 7700
