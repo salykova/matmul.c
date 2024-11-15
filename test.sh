@@ -5,7 +5,7 @@ step=1
 minsize=32
 maxsize=1024
 
-cmake -B build -S . -DOPENBLAS=OFF
+cmake -B build -S . -DOPENBLAS=OFF -DNTHREADS=${1}
 cmake --build build
 ./build/test ${minsize} ${maxsize} ${step}
 

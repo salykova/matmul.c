@@ -6,7 +6,7 @@ npts=40
 minsize=200
 maxsize=8000
 
-cmake -B build -S . -DOPENBLAS=OFF
+cmake -B build -S . -DOPENBLAS=OFF -DNTHREADS=${2}
 cmake --build build
 ./build/benchmark ${minsize} ${maxsize} ${npts} ${witer}
 

@@ -28,30 +28,45 @@ and install the Python dependencies
 python -m pip install -r requirements.txt
 ```
 ### Optional:
-If you want to benchmark OpenBLAS, please, install OpenBLAS following the [installation guide](https://github.com/OpenMathLib/OpenBLAS/wiki/Installation-Guide).
+To benchmark OpenBLAS, start by installing it according to the [installation guide](https://github.com/OpenMathLib/OpenBLAS/wiki/Installation-Guide). During the installation, ensure you set an appropriate TARGET and disable AVX512 instructions. For instance, if you're using Zen4/5 CPUs, compile OpenBLAS with:
+```bash
+make TARGET=ZEN
+```
+Otherwise, OpenBLAS defaults to AVX512 instructions available on Zen4/5 CPUs.
 
 
 ## Performance
 
 Test enviroment:
 - CPU: Ryzen 7 7700 8 Cores, 16 Threads
+- CPU LOCKED CLOCK SPEED: 4.5GHz
 - RAM: 32GB DDR5 6000 MHz CL36
 - OpenBLAS v.0.3.26
-- Compiler: `gcc 11.4.0`
-- Compiler flags: `-O3 -mno-avx512f -march=native`
+- MKL v2023.1
+- Compiler: GCC 11.4.0
 - OS: Ubuntu 22.04.4 LTS
 
 <p align="center">
   <img src="assets/perf.png" alt="openblas" width="85%">
 </p>
+First, lock CPU clock speed:
 
-To benchmark the code, run
 ```bash
-cmake -B build -S . -DOPENBLAS=OFF
+sudo cpupower frequency-set -u CLK
+sudo cpupower frequency-set -d CLK
+```
+For Ryzen 7700 I use `CLK=4500mhz`. Ensure that clock speed is stable and doesn't vary during the benchmark. You can check the CPU clock speed by running the command
+```bash
+watch -n 1 grep \"cpu MHz\" /proc/cpuinfo
+```
+
+To benchmark the matmul implementation, run
+```bash
+cmake -B build -S . -DOPENBLAS=OFF -DNTHREADS=X
 cmake --build build
 ./build/benchmark MINSIZE MAXSIZE NPTS WARMUP
 ```
-If not manually specified, default values are `MINSIZE=200`, `MAXSIZE=8000`, `NPTS=40`, `WARMUP=5`.
+and set `-DNTHREADS` according to your CPU. On Ryzen 7700 I use `-DNTHREADS=16`. If not manually specified, default benchmark parameters are `MINSIZE=200`, `MAXSIZE=8000`, `NPTS=40`, `WARMUP=5`.
 
 To benchmark OpenBLAS, run
 ```bash
@@ -61,7 +76,7 @@ cmake --build build
 ```
 Or you can use
 ```bash
-bash benchmark.sh /path/to/OpenBLAS
+bash benchmark.sh /path/to/OpenBLAS NTHREADS
 ```
 to benchmark both the code and OpenBLAS.
 
@@ -72,5 +87,5 @@ python plot_benchmark.py
 
 ## Tests
 ```bash
-bash test.sh
+bash test.sh NTHREADS
 ```

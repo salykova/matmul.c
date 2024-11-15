@@ -13,12 +13,12 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(10, 9))
 
     if "benchmark_openblas.txt" in benchmark_data:
-        mat_sizes, min_gflops_c, max_gflops_c, avg_gflops_c = np.loadtxt("benchmark_openblas.txt").T
-        plt.plot(mat_sizes, max_gflops_c, linewidth=2, label="cblas_sgemm C API")
+        mat_sizes, _, max_gflops_openblas, _ = np.loadtxt("benchmark_openblas.txt").T
+        plt.plot(mat_sizes, max_gflops_openblas, linewidth=2, label="cblas_sgemm C API")
 
     if "benchmark_matmul.txt" in benchmark_data:
-        mat_sizes, min_gflops_numpy, max_gflops_numpy, avg_gflops_numpy = np.loadtxt("benchmark_matmul.txt").T
-        plt.plot(mat_sizes, max_gflops_numpy, linewidth=2, label="matmul.c")
+        mat_sizes, _, max_gflops_matmul, _ = np.loadtxt("benchmark_matmul.txt").T
+        plt.plot(mat_sizes, max_gflops_matmul, linewidth=2, label="matmul.c")
 
     ax.set_xlabel("M=N=K", fontsize=16)
     ax.set_ylabel("GFLOPS", fontsize=16)

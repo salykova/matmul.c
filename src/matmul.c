@@ -2,12 +2,16 @@
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
-#define MR       16
-#define NR       6
-#define NTHREADS 16
-#define MC       (MR * NTHREADS * 2)
-#define NC       (NR * NTHREADS * 80)
-#define KC       1000
+#define MR 16
+#define NR 6
+
+#ifndef NTHREADS
+    #define NTHREADS 16
+#endif
+
+#define MC (MR * NTHREADS * 2)
+#define NC (NR * NTHREADS * 80)
+#define KC 1000
 
 static float blockA_packed[MC * KC] __attribute__((aligned(64)));
 static float blockB_packed[NC * KC] __attribute__((aligned(64)));
