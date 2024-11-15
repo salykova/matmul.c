@@ -10,7 +10,7 @@ if __name__ == "__main__":
     ), "No benchmark data was found, first run benchmark!"
 
     plt.rc("font", size=12)
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(10, 9))
 
     if "benchmark_openblas.txt" in benchmark_data:
         mat_sizes, min_gflops_c, max_gflops_c, avg_gflops_c = np.loadtxt("benchmark_openblas.txt").T
