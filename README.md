@@ -1,8 +1,6 @@
 # Fast, Multi-threaded Matrix Multiplication in C from Scratch
 
-> **Important!** Please don’t expect peak performance without fine-tuning the hyperparameters, such as the *number of threads, kernel and block sizes*, unless you run it on a Ryzen 7700(X). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
-
->In the current implementation, only 1 out of 5 loops is parallelized (the 2nd loop around the micro-kernel). For manycore processors (more than 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase performance (e.g., the 5th, 3rd, and 2nd loops around the micro-kernel).
+> **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 7700(X). The current implementation includes a single kernel and a parallelization strategy, both optimized for AMD Zen CPUs. For manycore processors (> 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase the performance (e.g., the 5th, 3rd, and 2nd loops around the kernel). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 ## Key Features
 - Step by step, beginner-friendly [tutorial](https://salykova.github.io/matmul-cpu)
