@@ -1,2 +1,4 @@
-void matmul(float* A, float* B, float* C, const int M, const int N, const int K);
-void matmul_naive(float* A, float* B, float* C, const int M, const int N, const int K);
+#pragma once
+
+void matmul(float* A, float* B, float* C, const int m, const int n, const int k);
+void matmul_naive(float* A, float* B, float* C, const int m, const int n, const int k);

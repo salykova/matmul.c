@@ -1,9 +1,39 @@
----
-BasedOnStyle: LLVM
----
 Language: Cpp
-DerivePointerAlignment: false
-PointerAlignment: Left
 ColumnLimit: 100
 TabWidth: 4
 IndentWidth: 4
+ReflowComments: false
+PointerAlignment: Left
+DerivePointerAlignment: false
+BreakAfterAttributes: Always
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 2
+MaxEmptyLinesToKeep: 2
+
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: All
+
+BinPackArguments: false
+BinPackParameters: false
+AlwaysBreakTemplateDeclarations: Yes
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeLambdaBody: true
+
+BreakBeforeBinaryOperators: NonAssignment
+BreakStringLiterals: true
+AlignOperands: Align
+SpaceBeforeCaseColon: true
+
+PenaltyBreakAssignment: 80
+BreakBeforeTernaryOperators: false
+IndentPPDirectives: BeforeHash

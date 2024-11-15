@@ -1,34 +1,21 @@
-#include "avx2_kernels.h"
+#include "kernel.h"
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
-#if MR == 16 && NR == 6
-#define kernel kernel_16x6
-
-#elif MR == 8 && NR == 12
-#define kernel kernel_8x12
-
-#elif MR == 8 && NR == 13
-#define kernel kernel_8x13
-
-#elif MR == 8 && NR == 14
-#define kernel kernel_8x14
-
-#elif MR == 8 && NR == 8
-#define kernel kernel_8x8
-
-#else
-#define kernel kernel_16x6
-
-#endif
+#define MR       16
+#define NR       6
+#define NTHREADS 16
+#define MC       (MR * NTHREADS * 2)
+#define NC       (NR * NTHREADS * 80)
+#define KC       1000
 
 static float blockA_packed[MC * KC] __attribute__((aligned(64)));
 static float blockB_packed[NC * KC] __attribute__((aligned(64)));
 
-void pack_panelB(float* B, float* blockB_packed, const int nr, const int kc, const int K) {
+void pack_panelB(float* B, float* blockB_packed, int nr, int kc, int k) {
     for (int p = 0; p < kc; p++) {
         for (int j = 0; j < nr; j++) {
-            *blockB_packed++ = B[j * K + p];
+            *blockB_packed++ = B[j * k + p];
         }
         for (int j = nr; j < NR; j++) {
             *blockB_packed++ = 0;
@@ -36,15 +23,15 @@ void pack_panelB(float* B, float* blockB_packed, const int nr, const int kc, con
     }
 }
 
-void pack_blockB(float* B, float* blockB_packed, const int nc, const int kc, const int K) {
-#pragma omp parallel for num_threads(NTHREADS) schedule(static)
+void pack_blockB(float* B, float* blockB_packed, int nc, int kc, int k) {
+#pragma omp parallel for num_threads(NTHREADS)
     for (int j = 0; j < nc; j += NR) {
-        const int nr = min(NR, nc - j);
-        pack_panelB(&B[j * K], &blockB_packed[j * kc], nr, kc, K);
+        int nr = min(NR, nc - j);
+        pack_panelB(&B[j * k], &blockB_packed[j * kc], nr, kc, k);
     }
 }
 
-void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, const int M) {
+void pack_panelA(float* A, float* blockA_packed, int mr, int kc, int M) {
     for (int p = 0; p < kc; p++) {
         for (int i = 0; i < mr; i++) {
             *blockA_packed++ = A[p * M + i];
@@ -55,30 +42,35 @@ void pack_panelA(float* A, float* blockA_packed, const int mr, const int kc, con
     }
 }
 
-void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, const int M) {
-#pragma omp parallel for num_threads(NTHREADS) schedule(static)
+void pack_blockA(float* A, float* blockA_packed, int mc, int kc, int M) {
+#pragma omp parallel for num_threads(NTHREADS)
     for (int i = 0; i < mc; i += MR) {
-        const int mr = min(MR, mc - i);
+        int mr = min(MR, mc - i);
         pack_panelA(&A[i], &blockA_packed[i * kc], mr, kc, M);
     }
 }
 
-void matmul(float* A, float* B, float* C, const int M, const int N, const int K) {
-    for (int j = 0; j < N; j += NC) {
-        const int nc = min(NC, N - j);
-        for (int p = 0; p < K; p += KC) {
-            const int kc = min(KC, K - p);
-            pack_blockB(&B[j * K + p], blockB_packed, nc, kc, K);
-            for (int i = 0; i < M; i += MC) {
-                const int mc = min(MC, M - i);
-                pack_blockA(&A[p * M + i], blockA_packed, mc, kc, M);
-#pragma omp parallel for num_threads(NTHREADS) schedule(static)
+void matmul(float* A, float* B, float* C, int m, int n, int k) {
+    for (int j = 0; j < n; j += NC) {
+        int nc = min(NC, n - j);
+        for (int p = 0; p < k; p += KC) {
+            int kc = min(KC, k - p);
+            pack_blockB(&B[j * k + p], blockB_packed, nc, kc, k);
+            for (int i = 0; i < m; i += MC) {
+                int mc = min(MC, m - i);
+                pack_blockA(&A[p * m + i], blockA_packed, mc, kc, m);
+#pragma omp parallel for collapse(2) num_threads(NTHREADS)
                 for (int jr = 0; jr < nc; jr += NR) {
                     for (int ir = 0; ir < mc; ir += MR) {
-                        const int nr = min(NR, nc - jr);
-                        const int mr = min(MR, mc - ir);
-                        kernel(&blockA_packed[ir * kc], &blockB_packed[jr * kc],
-                               &C[(j + jr) * M + (i + ir)], mr, nr, kc, M);
+                        int nr = min(NR, nc - jr);
+                        int mr = min(MR, mc - ir);
+                        kernel_16x6(&blockA_packed[ir * kc],
+                                    &blockB_packed[jr * kc],
+                                    &C[(j + jr) * m + (i + ir)],
+                                    mr,
+                                    nr,
+                                    kc,
+                                    m);
                     }
                 }
             }
@@ -86,11 +78,12 @@ void matmul(float* A, float* B, float* C, const int M, const int N, const int K)
     }
 }
 
-void matmul_naive(float* A, float* B, float* C, const int M, const int N, const int K) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            for (int p = 0; p < K; p++) {
-                C[j * M + i] += A[p * M + i] * B[j * K + p];
+void matmul_naive(float* A, float* B, float* C, int m, int n, int k) {
+#pragma omp parallel for num_threads(NTHREADS) collapse(2)
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            for (int p = 0; p < k; p++) {
+                C[j * m + i] += A[p * m + i] * B[j * k + p];
             }
         }
     }
