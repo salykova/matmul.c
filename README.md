@@ -42,7 +42,7 @@ Test enviroment:
 - OS: Ubuntu 22.04.4 LTS
 
 <p align="center">
-  <img src="assets/perf_vs_openblas.png" alt="openblas" width="85%">
+  <img src="assets/perf.png" alt="openblas" width="85%">
 </p>
 
 To benchmark the code, run
