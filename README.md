@@ -1,15 +1,15 @@
-# Fast, Multi-threaded Matrix Multiplication in C from Scratch
+# High-Performance FP32 Matrix Multiplication on CPU
 
 > **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 7700(X). The current implementation includes a single kernel and a parallelization strategy, both optimized for AMD Zen CPUs. For manycore processors (> 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase the performance (e.g., the 5th, 3rd, and 2nd loops around the kernel). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
 
 ## Key Features
-- Step by step, beginner-friendly [tutorial](https://salykova.github.io/matmul-cpu)
+- Performance comparable to OpenBLAS and MKL
 - Simple and scalable C code
 - Supports arbitrary matrix sizes
-- Faster than OpenBLAS and MKL on Ryzen 7700
-- Efficiently parallelized with just 3 lines of OpenMP directives
-- Targets x86 processors with AVX2 and FMA3 instructions (=all modern Intel Core and AMD Ryzen CPUs)
+- Efficiently parallelized with 3 lines of OpenMP directives
+- Targets x86 processors with AVX2 and FMA3 instructions
 - Follows the [BLIS](https://github.com/flame/blis) design
+- Step by step, beginner-friendly [tutorial](https://salykova.github.io/matmul-cpu)
 
 ## Installation
 Install the following packages via `apt` if you are using a Debian-based Linux distribution
@@ -40,7 +40,7 @@ Test enviroment:
 - CPU LOCKED CLOCK SPEED: 4.5GHz
 - RAM: 32GB DDR5 6000 MHz CL36
 - OpenBLAS v.0.3.26
-- MKL v2023.1
+- MKL 2023.1
 - Compiler: GCC 11.4.0
 - OS: Ubuntu 22.04.4 LTS
 
