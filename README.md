@@ -1,6 +1,6 @@
 # High-Performance FP32 Matrix Multiplication on CPU
 
-> **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 7700(X). The current implementation includes a single kernel and a parallelization strategy, both optimized for AMD Zen CPUs. For manycore processors (> 16 cores), consider utilizing nested parallelism and parallelizing 2-3 loops to increase the performance (e.g., the 5th, 3rd, and 2nd loops around the kernel). More on this in the [tutorial](https://salykova.github.io/matmul-cpu).
+> **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 7700(X). Current parallelization strategy is optimized for Intel and AMD x86 desktop CPUs. For many-core server processors, consider using nested parallelism and parallelizing 2-3 loops to increase the performance (e.g., the 5th, 3rd, and 2nd loops around the kernel).
 
 ## Key Features
 - Performance comparable to OpenBLAS and MKL
@@ -36,8 +36,8 @@ Otherwise, OpenBLAS defaults to AVX512 instructions available on Zen4/5 CPUs.
 ## Performance
 
 Test enviroment:
-- CPU: Ryzen 7 7700 8 Cores, 16 Threads
-- CPU LOCKED CLOCK SPEED: 4.5GHz
+- CPU: AMD Ryzen 7 7700 | AMD Ryzen 9 7900X
+- CPU locked clock speed: 4.5GHz
 - RAM: 32GB DDR5 6000 MHz CL36
 - OpenBLAS v.0.3.26
 - MKL 2023.1
@@ -45,7 +45,11 @@ Test enviroment:
 - OS: Ubuntu 22.04.4 LTS
 
 <p align="center">
-  <img src="assets/perf.png" alt="openblas" width="85%">
+  <img src="assets/perf_ryzen_7700.png" alt="openblas" width="85%">
+</p>
+
+<p align="center">
+  <img src="assets/perf_ryzen_7900x.png" alt="openblas" width="85%">
 </p>
 First, lock CPU clock speed:
 

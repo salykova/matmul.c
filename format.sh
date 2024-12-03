@@ -1,4 +1,5 @@
-clang-format -i ./common/*.h
-clang-format -i ./src/*.h
-clang-format -i ./src/*.c
-clang-format -i ./*.c
+clang-format-18 -i ./common/*.h
+clang-format-18 -i ./src/*.h
+clang-format-18 -i ./src/*.c
+clang-format-18 -i ./tutorial/*.c
+clang-format-18 -i ./*.c

@@ -8,19 +8,19 @@
 #define MEM_ALIGN 64
 
 #ifndef MDIM
-#define MDIM 1013
+    #define MDIM 1013
 #endif
 
 #ifndef NDIM
-#define NDIM 1022
+    #define NDIM 1022
 #endif
 
 #ifndef KDIM
-#define KDIM 1011
+    #define KDIM 1011
 #endif
 
 #ifndef NITER
-#define NITER 100
+    #define NITER 100
 #endif
 
 #define MR 16
@@ -57,8 +57,14 @@ void pack_blockB(float* B, float* blockB_packed, const int n, const int N, const
     }
 }
 
-void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int m, const int n,
-                 const int M, const int N, const int K) {
+void kernel_16x6(float* blockA_packed,
+                 float* blockB_packed,
+                 float* C,
+                 const int m,
+                 const int n,
+                 const int M,
+                 const int N,
+                 const int K) {
 
     __m256i masks[2];
     __m256 C_buffer[6][2];
@@ -68,12 +74,22 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
 
     if (m != MR) {
         const unsigned int bit_mask = 65535;
-        masks[0] = _mm256_setr_epi32(
-            bit_mask << (m + 15), bit_mask << (m + 14), bit_mask << (m + 13), bit_mask << (m + 12),
-            bit_mask << (m + 11), bit_mask << (m + 10), bit_mask << (m + 9), bit_mask << (m + 8));
-        masks[1] = _mm256_setr_epi32(bit_mask << (m + 7), bit_mask << (m + 6), bit_mask << (m + 5),
-                                     bit_mask << (m + 4), bit_mask << (m + 3), bit_mask << (m + 2),
-                                     bit_mask << (m + 1), bit_mask << m);
+        masks[0] = _mm256_setr_epi32(bit_mask << (m + 15),
+                                     bit_mask << (m + 14),
+                                     bit_mask << (m + 13),
+                                     bit_mask << (m + 12),
+                                     bit_mask << (m + 11),
+                                     bit_mask << (m + 10),
+                                     bit_mask << (m + 9),
+                                     bit_mask << (m + 8));
+        masks[1] = _mm256_setr_epi32(bit_mask << (m + 7),
+                                     bit_mask << (m + 6),
+                                     bit_mask << (m + 5),
+                                     bit_mask << (m + 4),
+                                     bit_mask << (m + 3),
+                                     bit_mask << (m + 2),
+                                     bit_mask << (m + 1),
+                                     bit_mask << m);
 
         for (int j = 0; j < n; j++) {
             C_buffer[j][0] = _mm256_maskload_ps(&C[j * M], masks[0]);
@@ -180,7 +196,10 @@ void compare_mats(float* mat1, float* mat2, const int M, const int N) {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
             if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-3) {
-                printf("MISMATCH! Element[%d][%d] %f != %f\n", i, j, mat1[j * M + i],
+                printf("MISMATCH! Element[%d][%d] %f != %f\n",
+                       i,
+                       j,
+                       mat1[j * M + i],
                        mat2[j * M + i]);
                 return;
             }

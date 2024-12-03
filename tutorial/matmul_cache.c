@@ -15,19 +15,19 @@
 #define KC 2000
 
 #ifndef MDIM
-#define MDIM 1000
+    #define MDIM 1000
 #endif
 
 #ifndef NDIM
-#define NDIM 1000
+    #define NDIM 1000
 #endif
 
 #ifndef KDIM
-#define KDIM 1000
+    #define KDIM 1000
 #endif
 
 #ifndef NITER
-#define NITER 100
+    #define NITER 100
 #endif
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
@@ -71,8 +71,13 @@ void pack_blockA(float* A, float* blockA_packed, const int mc, const int kc, con
     }
 }
 
-void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int m, const int n,
-                 const int k, const int M) {
+void kernel_16x6(float* blockA_packed,
+                 float* blockB_packed,
+                 float* C,
+                 const int m,
+                 const int n,
+                 const int k,
+                 const int M) {
     __m256 C_buffer[6][2];
     __m256 b_packFloat8;
     __m256 a0_packFloat8;
@@ -80,12 +85,22 @@ void kernel_16x6(float* blockA_packed, float* blockB_packed, float* C, const int
     __m256i packed_masks[2];
     if (m != 16) {
         const unsigned int bit_mask = 65535;
-        packed_masks[0] = _mm256_setr_epi32(
-            bit_mask << (m + 15), bit_mask << (m + 14), bit_mask << (m + 13), bit_mask << (m + 12),
-            bit_mask << (m + 11), bit_mask << (m + 10), bit_mask << (m + 9), bit_mask << (m + 8));
-        packed_masks[1] = _mm256_setr_epi32(
-            bit_mask << (m + 7), bit_mask << (m + 6), bit_mask << (m + 5), bit_mask << (m + 4),
-            bit_mask << (m + 3), bit_mask << (m + 2), bit_mask << (m + 1), bit_mask << m);
+        packed_masks[0] = _mm256_setr_epi32(bit_mask << (m + 15),
+                                            bit_mask << (m + 14),
+                                            bit_mask << (m + 13),
+                                            bit_mask << (m + 12),
+                                            bit_mask << (m + 11),
+                                            bit_mask << (m + 10),
+                                            bit_mask << (m + 9),
+                                            bit_mask << (m + 8));
+        packed_masks[1] = _mm256_setr_epi32(bit_mask << (m + 7),
+                                            bit_mask << (m + 6),
+                                            bit_mask << (m + 5),
+                                            bit_mask << (m + 4),
+                                            bit_mask << (m + 3),
+                                            bit_mask << (m + 2),
+                                            bit_mask << (m + 1),
+                                            bit_mask << m);
         for (int j = 0; j < n; j++) {
             C_buffer[j][0] = _mm256_maskload_ps(&C[j * M], packed_masks[0]);
             C_buffer[j][1] = _mm256_maskload_ps(&C[j * M + 8], packed_masks[1]);
@@ -153,8 +168,13 @@ void matmul_cache(float* A, float* B, float* C, const int M, const int N, const 
                     const int nr = min(NR, nc - jr);
                     for (int ir = 0; ir < mc; ir += MR) {
                         const int mr = min(MR, mc - ir);
-                        kernel_16x6(&blockA_packed[ir * kc], &blockB_packed[jr * kc],
-                                    &C[(j + jr) * M + (i + ir)], mr, nr, kc, M);
+                        kernel_16x6(&blockA_packed[ir * kc],
+                                    &blockB_packed[jr * kc],
+                                    &C[(j + jr) * M + (i + ir)],
+                                    mr,
+                                    nr,
+                                    kc,
+                                    M);
                     }
                 }
             }
@@ -200,7 +220,10 @@ void compare_mats(float* mat1, float* mat2, const int M, const int N) {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
             if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-4) {
-                printf("MISMATCH! Element[%d][%d] %f != %f\n", i, j, mat1[j * M + i],
+                printf("MISMATCH! Element[%d][%d] %f != %f\n",
+                       i,
+                       j,
+                       mat1[j * M + i],
                        mat2[j * M + i]);
                 return;
             }
