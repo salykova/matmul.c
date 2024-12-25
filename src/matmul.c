@@ -10,8 +10,8 @@
 #endif
 
 #define MC (MR * NTHREADS * 2)
-#define NC (NR * NTHREADS * 80)
-#define KC 1000
+#define NC (NR * NTHREADS * 71)
+#define KC 800
 
 static float blockA_packed[MC * KC] __attribute__((aligned(64)));
 static float blockB_packed[NC * KC] __attribute__((aligned(64)));

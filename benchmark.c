@@ -93,7 +93,9 @@ int main(int argc, char* argv[]) {
         double avg_exec_time = 0;
         double max_exec_time = 0;
         double min_exec_time = 1e69;
-        int n_iter = (int)(100000 / matsize);
+        int n_iter = (int)(40000 / matsize);
+        n_iter = n_iter > 0 ? n_iter : 1;
+
         for (int j = 0; j < n_iter; j++) {
             init_const(C, 0.0, matsize, matsize);
             uint64_t start = timer();

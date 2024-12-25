@@ -4,6 +4,12 @@ import numpy as np
 
 
 if __name__ == "__main__":
+    cpu_model = "Unknown CPU"
+    with open("/proc/cpuinfo", "r") as f:
+        for line in f:
+            if "model name" in line:
+                cpu_model = line[line.find(":")+1:].strip()
+
     benchmark_data = glob.glob("*.txt")
     assert (
         "benchmark_matmul.txt" in benchmark_data or "benchmark_openblas.txt" in benchmark_data
@@ -22,7 +28,7 @@ if __name__ == "__main__":
 
     ax.set_xlabel("M=N=K", fontsize=16)
     ax.set_ylabel("GFLOPS", fontsize=16)
-    ax.set_title("AMD Ryzen 7 7700 8-Core Processor", fontsize=19)
+    ax.set_title(cpu_model, fontsize=19)
     ax.legend(fontsize=16)
     ax.grid()
     plt.show()
