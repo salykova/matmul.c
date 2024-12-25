@@ -3,13 +3,13 @@
 > **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 9700X. Current parallelization strategy is optimized for Intel and AMD x86 desktop CPUs. For many-core server processors, consider using nested parallelism and parallelizing 2-3 loops to increase the performance (e.g., the 5th, 3rd, and 2nd loops around the kernel).
 
 ## Key Features
-- Performance comparable to OpenBLAS and MKL
-- Simple and scalable C code
-- Supports arbitrary matrix sizes
-- Efficiently parallelized with 3 lines of OpenMP directives
-- Targets x86 processors with AVX2 and FMA3 instructions
-- Follows the [BLIS](https://github.com/flame/blis) design
+
+- Optimized for x86 desktop CPUs with FMA3 and AVX2 instructions
+- Faster than OpenBLAS and MKL
 - Step by step, beginner-friendly [tutorial](https://salykova.github.io/matmul-cpu)
+- Simple and compact implementation
+- Multithreading via OpenMP
+- High-level design follows [BLIS](https://github.com/flame/blis)
 
 ## Installation
 Install the following packages via `apt` if you are using a Debian-based Linux distribution
@@ -36,13 +36,12 @@ Otherwise, OpenBLAS defaults to AVX512 instructions available on Zen4/5 CPUs.
 ## Performance
 
 Test enviroment:
-- CPU: AMD Ryzen 7 9700X | AMD Ryzen 9 7900X
-- CPU locked clock speed: 4.5GHz
+- CPU: AMD Ryzen 7 9700X | Ryzen 9 7900X
+- Locked CPU clock frequency: 4.5GHz
 - RAM: 32GB DDR5 6000 MHz CL36
 - OpenBLAS v.0.3.26
-- MKL 2023.1
-- Compiler: GCC 11.4.0
-- OS: Ubuntu 22.04.4 LTS
+- Compiler: GCC 13.3.0
+- OS: Ubuntu Ubuntu 24.04.1 LTS
 
 <p align="center">
   <img src="assets/perf_ryzen_9700x.png" alt="openblas" width="85%">
@@ -51,13 +50,13 @@ Test enviroment:
 <p align="center">
   <img src="assets/perf_ryzen_7900x.png" alt="openblas" width="85%">
 </p>
-First, lock CPU clock speed:
+First, lock CPU clock frequency:
 
 ```bash
 sudo cpupower frequency-set -u CLK
 sudo cpupower frequency-set -d CLK
 ```
-For Ryzen 9700X I use `CLK=4500mhz`. Ensure that clock speed is stable and doesn't vary during the benchmark. You can check the CPU clock speed by running the command
+Ensure that clock frequency is stable and doesn't vary during the benchmark. You can check the CPU clock frequency by running the command
 ```bash
 watch -n 1 grep \"cpu MHz\" /proc/cpuinfo
 ```
