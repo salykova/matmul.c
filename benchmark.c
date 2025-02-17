@@ -1,4 +1,5 @@
-#include "helper_matrix.h"
+#include "utils.h"
+#include <assert.h>
 #include <immintrin.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +11,8 @@
     #include "matmul.h"
 #endif
 
-#define MEMALIGN 64
+#define MEMALIGN  64
+#define max(x, y) ((x) > (y) ? (x) : (y))
 
 uint64_t timer() {
     struct timespec start;
@@ -21,45 +23,39 @@ uint64_t timer() {
 int main(int argc, char* argv[]) {
     srand(time(NULL));
     int MINSIZE = 200;
-    int MAXSIZE = 8000;
+    int STEPSIZE = 200;
     int NPTS = 40;
-    int WARMUP = 5;
+    int WNITER = 5;
+    int NITER_START = 1001;
+    int NITER_END = 5;
 
-    if (argc > 4) {
+    if (argc > 6) {
         MINSIZE = atoi(argv[1]);
-        MAXSIZE = atoi(argv[2]);
+        STEPSIZE = atoi(argv[2]);
         NPTS = atoi(argv[3]);
-        WARMUP = atoi(argv[4]);
+        WNITER = atoi(argv[4]);
+        NITER_START = atoi(argv[5]);
+        NITER_END = atoi(argv[6]);
     }
 
-    printf("================\n");
-    printf("MINSIZE = %i\nMAXSIZE = %i\nNPTS = %i\nWARMUP = %i\n", MINSIZE, MAXSIZE, NPTS, WARMUP);
-    printf("================\n");
-    int avg_gflops[NPTS];
-    int min_gflops[NPTS];
-    int max_gflops[NPTS];
-    int matsizes[NPTS];
-
-    double delta_size = (double)(MAXSIZE - MINSIZE) / (NPTS - 1);
-    for (int i = 0; i < NPTS - 1; i++) {
-        matsizes[i] = MINSIZE + i * delta_size;
-    }
-    matsizes[NPTS - 1] = MAXSIZE;
+    assert(NPTS > 0 && MINSIZE > 0 && STEPSIZE > 0 && NPTS > 0 && (NITER_START >= NITER_END));
 
     // Warm-up
-    printf("Warm-up:\n");
-    float* A = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEMALIGN);
-    float* B = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEMALIGN);
-    float* C = (float*)_mm_malloc(MAXSIZE * MAXSIZE * sizeof(float), MEMALIGN);
-    for (int j = 0; j < WARMUP; j++) {
+    int wmatsize = MINSIZE + (int)(NPTS / 2) * STEPSIZE;
+    printf("================\n");
+    printf("Warm-up: m=n=k=%i\n", wmatsize);
+    float* A = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    float* B = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    float* C = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    int m = wmatsize;
+    int n = wmatsize;
+    int k = wmatsize;
+    for (int j = 0; j < WNITER; j++) {
         fflush(stdout);
-        printf("\r%i / %i", j + 1, WARMUP);
-        init_const(C, 0.0, MAXSIZE, MAXSIZE);
-        int m = MAXSIZE;
-        int n = MAXSIZE;
-        int k = MAXSIZE;
+        printf("\r%i / %i", j + 1, WNITER);
+        init_const(C, 0.0, wmatsize * wmatsize);
 #ifdef OPENBLAS
-        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A, m, B, k, 0, C, m);
+        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, A, m, B, k, 0.0, C, m);
 #else
         matmul(A, B, C, m, n, k);
 #endif
@@ -68,16 +64,25 @@ int main(int argc, char* argv[]) {
     _mm_free(A);
     _mm_free(B);
     _mm_free(C);
+
+    // Benchmark
     printf("==========================\n");
 #ifdef OPENBLAS
-    printf("Benchmarking OpenBLAS ...\n");
+    printf("Benchmarking OpenBLAS\n");
 #else
-    printf("Benchmarking matmul.c ...\n");
+    printf("Benchmarking matmul.c\n");
 #endif
     printf("==========================\n");
+
+    int* gflops_median_all = (int*)malloc(NPTS * sizeof(int));
+    int* gflops_max_all = (int*)malloc(NPTS * sizeof(int));
+    int* matsizes = (int*)malloc(NPTS * sizeof(int));
+    for (int i = 0; i < NPTS; i++) {
+        matsizes[i] = MINSIZE + i * STEPSIZE;
+    }
+
     for (int i = 0; i < NPTS; i++) {
         int matsize = matsizes[i];
-
         int m = matsize;
         int n = matsize;
         int k = matsize;
@@ -86,18 +91,16 @@ int main(int argc, char* argv[]) {
         float* B = (float*)_mm_malloc(matsize * matsize * sizeof(float), MEMALIGN);
         float* C = (float*)_mm_malloc(matsize * matsize * sizeof(float), MEMALIGN);
 
-        init_rand(A, matsize, matsize);
-        init_rand(B, matsize, matsize);
+        init_rand(A, matsize * matsize);
+        init_rand(B, matsize * matsize);
 
+        int n_iter =
+            max(1, scedule_niter(matsize, NITER_START, NITER_END, MINSIZE, matsizes[NPTS - 1]));
+        float* runtimes = (float*)malloc(n_iter * sizeof(float));
         double FLOP = 2 * (double)matsize * matsize * matsize;
-        double avg_exec_time = 0;
-        double max_exec_time = 0;
-        double min_exec_time = 1e69;
-        int n_iter = (int)(40000 / matsize);
-        n_iter = n_iter > 0 ? n_iter : 1;
 
         for (int j = 0; j < n_iter; j++) {
-            init_const(C, 0.0, matsize, matsize);
+            init_const(C, 0.0, matsize * matsize);
             uint64_t start = timer();
 #ifdef OPENBLAS
             cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A, m, B, k, 0, C, m);
@@ -105,22 +108,23 @@ int main(int argc, char* argv[]) {
             matmul(A, B, C, m, n, k);
 #endif
             uint64_t end = timer();
-            float exec_time = (end - start) * 1e-9;
-            max_exec_time = exec_time > max_exec_time ? exec_time : max_exec_time;
-            min_exec_time = exec_time < min_exec_time ? exec_time : min_exec_time;
-            avg_exec_time += exec_time;
+            runtimes[j] = (end - start) * 1e-9;
         }
 
-        avg_exec_time /= n_iter;
-        avg_gflops[i] = (int)(FLOP / avg_exec_time / 1e9);
-        max_gflops[i] = (int)(FLOP / min_exec_time / 1e9);
-        min_gflops[i] = (int)(FLOP / max_exec_time / 1e9);
+        qsort(runtimes, n_iter, sizeof(float), compare_floats);
+        float runtime_median = n_iter % 2 == 0 ?
+                                   (runtimes[n_iter / 2] + runtimes[n_iter / 2 - 1]) / 2 :
+                                   runtimes[n_iter / 2];
+        int gflops_median = (int)(FLOP / (double)runtime_median / 1e9);
+        int gflops_max = (int)(FLOP / (double)runtimes[0] / 1e9);
+        gflops_max_all[i] = gflops_max;
+        gflops_median_all[i] = gflops_median;
 
-        printf("matsize = %i, PEAK GFLOPS = %i\n", matsize, max_gflops[i]);
-
+        printf("m=n=k=%i | PEAK/MEDIAN GFLOPS = %i/%i\n", matsize, gflops_max, gflops_median);
         _mm_free(A);
         _mm_free(B);
         _mm_free(C);
+        free(runtimes);
     }
     printf("\n================\n");
     FILE* fptr;
@@ -135,9 +139,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     for (int i = 0; i < NPTS; i++) {
-        fprintf(fptr, "%i %i %i %i\n", matsizes[i], min_gflops[i], max_gflops[i], avg_gflops[i]);
+        fprintf(fptr, "%i %i %i\n", matsizes[i], gflops_max_all[i], gflops_median_all[i]);
     }
     fclose(fptr);
     printf("Saved in %s\n", filename);
+
+    free(gflops_max_all);
+    free(gflops_median_all);
+    free(matsizes);
     return 0;
 }

@@ -1,6 +1,6 @@
 add_library(matmul matmul.c kernel.c)
 
-if(NOT DEFINED NTHREADS)
+if((NOT DEFINED NTHREADS) OR (NTHREADS STREQUAL ""))
   set(NTHREADS 16)
 endif()
 
