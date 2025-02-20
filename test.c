@@ -1,5 +1,5 @@
-#include "helper_matrix.h"
 #include "matmul.h"
+#include "utils.h"
 #include <immintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +36,8 @@ int main(int argc, char* argv[]) {
         float* B = (float*)_mm_malloc(n * k * sizeof(float), 64);
         float* C = (float*)_mm_malloc(m * n * sizeof(float), 64);
         float* C_ref = (float*)_mm_malloc(m * n * sizeof(float), 64);
-        init_rand(A, m, k);
-        init_rand(B, k, n);
-        init_const(C, 0.0, m, n);
-        init_const(C_ref, 0.0, m, n);
+        init_rand(A, m * k);
+        init_rand(B, k * n);
 
 #ifdef OPENBLAS
         cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A, m, B, k, 0, C, m);
@@ -48,8 +46,8 @@ int main(int argc, char* argv[]) {
 #endif
         matmul_naive(A, B, C_ref, m, n, k);
 
-        struct cmp_result result = compare_mats(C, C_ref, m, n);
-        if (result.n_false > 0) {
+        struct val_data result = validate_mat(C, C_ref, m * n, 1e-4);
+        if (result.n_error > 0) {
             n_failed += 1;
             printf("Test #%i: FAILED\n", i + 1);
         } else {

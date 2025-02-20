@@ -1,9 +1,7 @@
 #include "utils.h"
 #include <assert.h>
 #include <immintrin.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <time.h>
 
 #ifdef OPENBLAS
     #include <cblas.h>
@@ -13,12 +11,6 @@
 
 #define MEMALIGN  64
 #define max(x, y) ((x) > (y) ? (x) : (y))
-
-uint64_t timer() {
-    struct timespec start;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-    return (uint64_t)start.tv_sec * 1000000000 + (uint64_t)start.tv_nsec;
-}
 
 int main(int argc, char* argv[]) {
     srand(time(NULL));
@@ -53,7 +45,6 @@ int main(int argc, char* argv[]) {
     for (int j = 0; j < WNITER; j++) {
         fflush(stdout);
         printf("\r%i / %i", j + 1, WNITER);
-        init_const(C, 0.0, wmatsize * wmatsize);
 #ifdef OPENBLAS
         cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, A, m, B, k, 0.0, C, m);
 #else
@@ -95,12 +86,11 @@ int main(int argc, char* argv[]) {
         init_rand(B, matsize * matsize);
 
         int n_iter =
-            max(1, scedule_niter(matsize, NITER_START, NITER_END, MINSIZE, matsizes[NPTS - 1]));
+            max(1, calculate_niter(matsize, NITER_START, NITER_END, MINSIZE, matsizes[NPTS - 1]));
         float* runtimes = (float*)malloc(n_iter * sizeof(float));
         double FLOP = 2 * (double)matsize * matsize * matsize;
 
         for (int j = 0; j < n_iter; j++) {
-            init_const(C, 0.0, matsize * matsize);
             uint64_t start = timer();
 #ifdef OPENBLAS
             cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A, m, B, k, 0, C, m);

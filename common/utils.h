@@ -1,6 +1,8 @@
 #pragma once
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 int compare_floats(const void* a, const void* b) {
     float fa = *(const float*)a;
@@ -8,7 +10,13 @@ int compare_floats(const void* a, const void* b) {
     return (fa > fb) - (fa < fb);
 }
 
-int scedule_niter(int matsize, int niter_start, int niter_end, int matsize_start, int matsize_end) {
+int calculate_niter(int matsize,
+                    int niter_start,
+                    int niter_end,
+                    int matsize_start,
+                    int matsize_end) {
+
+    if (matsize_end == matsize_start) return niter_start;
     float a = ((float)niter_end - niter_start) * (matsize_start * matsize_end)
               / (matsize_start - matsize_end);
     float b = niter_start - a / matsize_start;
@@ -40,10 +48,12 @@ struct val_data validate_mat(float* mat, float* mat_ref, int n_elem, float eps) 
         float value_ref = mat_ref[i];
         if (isnan(value)) {
             result.n_nans += 1;
+            result.n_error += 1;
             continue;
         }
         if (isinf(value_ref)) {
             result.n_inf += 1;
+            result.n_error += 1;
             continue;
         }
         if (fabsf(value - value_ref) / value_ref > eps) {
@@ -52,4 +62,10 @@ struct val_data validate_mat(float* mat, float* mat_ref, int n_elem, float eps) 
         }
     }
     return result;
+}
+
+uint64_t timer() {
+    struct timespec start;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+    return (uint64_t)start.tv_sec * 1000000000 + (uint64_t)start.tv_nsec;
 }

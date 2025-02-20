@@ -22,6 +22,7 @@ endif(OPENBLAS)
 
 add_executable(benchmark benchmark.c)
 add_executable(test_matmul test.c)
+add_executable(plot_data plot_data.c)
 
 list(APPEND MATMUL_LIBS -lm -lpthread)
 target_link_libraries(test_matmul PUBLIC matmul ${MATMUL_LIBS})
