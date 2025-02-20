@@ -36,7 +36,7 @@ Test enviroment:
 - OS: Ubuntu Ubuntu 24.04.1 LTS
 
 <p align="center">
-  <img src="assets/9700x.png" alt="openblas" width="85%">
+  <img src="assets/9700x.png" alt="openblas" width="80%">
 </p>
 
 To benchmark the custom implementation, run
@@ -59,5 +59,5 @@ bash scripts/plot_data.sh
 
 ## Tests
 ```bash
-bash test.sh NTHREADS
+bash scripts/test.sh NTHREADS
 ```
