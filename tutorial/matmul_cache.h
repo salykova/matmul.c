@@ -1,11 +1,8 @@
-// clang-17 -O2 -mno-avx512f -DTEST -march=native -DNITER=100000 matmul_cache.c -o matmul_cache.out && ./matmul_cache.out
+#pragma once
+
 #include <immintrin.h>
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <time.h>
-
-#define MEM_ALIGN 64
 
 #define MR 16
 #define NR 6
@@ -14,26 +11,10 @@
 #define NC NR * 256
 #define KC 2000
 
-#ifndef MDIM
-    #define MDIM 1000
-#endif
-
-#ifndef NDIM
-    #define NDIM 1000
-#endif
-
-#ifndef KDIM
-    #define KDIM 1000
-#endif
-
-#ifndef NITER
-    #define NITER 100
-#endif
-
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
-static float blockA_packed[MC * KC] __attribute__((aligned(MEM_ALIGN)));
-static float blockB_packed[NC * KC] __attribute__((aligned(MEM_ALIGN)));
+static float blockA_packed[MC * KC] __attribute__((aligned(64)));
+static float blockB_packed[NC * KC] __attribute__((aligned(64)));
 
 void pack_panelB(float* B, float* blockB_packed, const int nr, const int kc, const int K) {
     for (int p = 0; p < kc; p++) {
@@ -78,29 +59,31 @@ void kernel_16x6(float* blockA_packed,
                  const int n,
                  const int k,
                  const int M) {
+
+    const uint32_t bit_mask = 65535;
     __m256 C_buffer[6][2];
     __m256 b_packFloat8;
     __m256 a0_packFloat8;
     __m256 a1_packFloat8;
     __m256i packed_masks[2];
+
+    packed_masks[0] = _mm256_setr_epi32(bit_mask << (m + 15),
+                                        bit_mask << (m + 14),
+                                        bit_mask << (m + 13),
+                                        bit_mask << (m + 12),
+                                        bit_mask << (m + 11),
+                                        bit_mask << (m + 10),
+                                        bit_mask << (m + 9),
+                                        bit_mask << (m + 8));
+    packed_masks[1] = _mm256_setr_epi32(bit_mask << (m + 7),
+                                        bit_mask << (m + 6),
+                                        bit_mask << (m + 5),
+                                        bit_mask << (m + 4),
+                                        bit_mask << (m + 3),
+                                        bit_mask << (m + 2),
+                                        bit_mask << (m + 1),
+                                        bit_mask << m);
     if (m != 16) {
-        const unsigned int bit_mask = 65535;
-        packed_masks[0] = _mm256_setr_epi32(bit_mask << (m + 15),
-                                            bit_mask << (m + 14),
-                                            bit_mask << (m + 13),
-                                            bit_mask << (m + 12),
-                                            bit_mask << (m + 11),
-                                            bit_mask << (m + 10),
-                                            bit_mask << (m + 9),
-                                            bit_mask << (m + 8));
-        packed_masks[1] = _mm256_setr_epi32(bit_mask << (m + 7),
-                                            bit_mask << (m + 6),
-                                            bit_mask << (m + 5),
-                                            bit_mask << (m + 4),
-                                            bit_mask << (m + 3),
-                                            bit_mask << (m + 2),
-                                            bit_mask << (m + 1),
-                                            bit_mask << m);
         for (int j = 0; j < n; j++) {
             C_buffer[j][0] = _mm256_maskload_ps(&C[j * M], packed_masks[0]);
             C_buffer[j][1] = _mm256_maskload_ps(&C[j * M + 8], packed_masks[1]);
@@ -180,102 +163,4 @@ void matmul_cache(float* A, float* B, float* C, const int M, const int N, const 
             }
         }
     }
-}
-
-void matmul_naive(float* A, float* B, float* C, const int M, const int N, const int K) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            for (int p = 0; p < K; p++) {
-                C[j * M + i] += A[p * M + i] * B[j * K + p];
-            }
-        }
-    }
-}
-
-void print_mat(float* mat, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            printf("%f ", mat[i * N + j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-void init_rand(float* mat, const int M, const int N) {
-    for (int i = 0; i < M * N; i++) {
-        *mat++ = rand() / (float)RAND_MAX;
-    }
-}
-
-void init_const(float* mat, const float value, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            *mat++ = value;
-        }
-    }
-}
-
-void compare_mats(float* mat1, float* mat2, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            if (fabsf(mat1[j * M + i] - mat2[j * M + i]) > 1e-4) {
-                printf("MISMATCH! Element[%d][%d] %f != %f\n",
-                       i,
-                       j,
-                       mat1[j * M + i],
-                       mat2[j * M + i]);
-                return;
-            }
-        }
-    }
-    printf("MATCH!\n");
-    return;
-}
-
-uint64_t timer() {
-    struct timespec start;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-    return (uint64_t)start.tv_sec * 1000000000 + (uint64_t)start.tv_nsec;
-}
-
-int main() {
-    const int M = MDIM;
-    const int N = NDIM;
-    const int K = KDIM;
-    float* A = (float*)_mm_malloc(M * K * sizeof(float), MEM_ALIGN);
-    float* B = (float*)_mm_malloc(K * N * sizeof(float), MEM_ALIGN);
-    float* C = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
-    float* C_ref = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
-    init_rand(A, M, K);
-    init_rand(B, K, N);
-
-#ifdef TEST
-    matmul_naive(A, B, C_ref, M, N, K);
-#endif
-    double FLOP = 2 * (double)M * N * K;
-
-    for (int i = 0; i < NITER; i++) {
-        init_const(C, 0.0, M, N);
-        uint64_t start = timer();
-        matmul_cache(A, B, C, M, N, K);
-        uint64_t end = timer();
-
-        double exec_time = (end - start) * 1e-9;
-        double FLOPS = FLOP / exec_time;
-
-        printf("Exec. time = %.3fms\n", exec_time * 1000);
-        printf("GFLOPS = %.3f\n", FLOPS / 1e9);
-#ifdef TEST
-        compare_mats(C, C_ref, M, N);
-#endif
-        printf("\n");
-    }
-
-    _mm_free(A);
-    _mm_free(B);
-    _mm_free(C);
-    _mm_free(C_ref);
-
-    return 0;
 }
