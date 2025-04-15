@@ -42,7 +42,7 @@ void kernel_16x6(float* A_start, float* B_start, float* C_start, int M, int N, i
     }
 }
 
-void matmul_kernel(float* A, float* B, float* C, const int M, const int N, const int K) {
+void matmul_kernel(float* A, float* B, float* C, int M, int N, int K) {
     for (int i = 0; i < M; i += 16) {
         for (int j = 0; j < N; j += 6) {
             kernel_16x6(&A[i], &B[j * K], &C[j * M + i], M, N, K);

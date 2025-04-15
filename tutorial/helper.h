@@ -5,45 +5,46 @@
 #include <stdlib.h>
 #include <time.h>
 
-void print_mat(float* mat, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            printf("%f ", mat[i * N + j]);
+void print_mat(float* mat, int n_rows, int n_cols) {
+    for (int i = 0; i < n_rows; i++) {
+        for (int j = 0; j < n_cols; j++) {
+            printf("%f ", mat[j * n_rows + i]);
         }
         printf("\n");
     }
     printf("\n");
 }
 
-void init_rand(float* mat, const int M, const int N) {
-    for (int i = 0; i < M * N; i++) {
+void init_rand(float* mat, size_t n_elems) {
+    for (size_t i = 0; i < n_elems; i++) {
         *mat++ = rand() / (float)RAND_MAX;
     }
 }
 
-void init_const(float* mat, const float value, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            *mat++ = value;
-        }
+void init_const(float* mat, float value, size_t n_elems) {
+    for (size_t i = 0; i < n_elems; i++) {
+        *mat++ = value;
     }
 }
 
-void compare_mats(float* mat, float* mat_ref, const int M, const int N) {
-    for (int i = 0; i < M; i++) {
-        for (int j = 0; j < N; j++) {
-            if ((fabsf(mat[j * M + i] - mat_ref[j * M + i]) / mat_ref[j * M + i]) > 1e-4) {
-                printf("MISMATCH! Element[%d][%d] %f != %f\n",
-                       i,
-                       j,
-                       mat[j * M + i],
-                       mat_ref[j * M + i]);
+void validate_mat(float* mat, float* mat_ref, size_t n_elems, float eps) {
+    for (size_t i = 0; i < n_elems; i++) {
+        float value = mat[i];
+        float ref_value = mat_ref[i];
+        if (isnan(value)) {
+            printf("Error, NAN found!\n");
+            return;
+        } else if (isinf(value)) {
+            printf("Error, INF found!\n");
+            return;
+        } else {
+            if (fabsf((value - ref_value) / ref_value) > eps) {
+                printf("Error, %f != %f\n", value, ref_value);
                 return;
             }
         }
     }
-    printf("MATCH!\n");
-    return;
+    printf("PASSED!\n");
 }
 
 uint64_t timer() {

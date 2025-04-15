@@ -5,17 +5,15 @@
     #include "matmul_naive.h"
 #endif
 
-#ifndef MATMUL_VER
-    #define MATMUL_VER matmul_kernel
-#endif
-
-#define EXT .h
-
 #define STR(x)             #x
 #define STRINGIFY_MACRO(x) STR(x)
 #define EXPAND(x)          x
-#define CONCAT(n1, n2)     STRINGIFY_MACRO(EXPAND(n1)EXPAND(n2))
+#define CONCAT(n1, n2)     STRINGIFY_MACRO(EXPAND(n1) EXPAND(n2))
 
+#define EXT .h
+#ifndef MATMUL_VER
+    #define MATMUL_VER matmul_kernel
+#endif
 #include CONCAT(MATMUL_VER, EXT)
 
 #define MEM_ALIGN 64
@@ -44,8 +42,8 @@ int main() {
     float* B = (float*)_mm_malloc(K * N * sizeof(float), MEM_ALIGN);
     float* C = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
     float* C_ref = (float*)_mm_malloc(M * N * sizeof(float), MEM_ALIGN);
-    init_rand(A, M, K);
-    init_rand(B, K, N);
+    init_rand(A, M * K);
+    init_rand(B, K * N);
 
 #ifdef TEST
     matmul_naive(A, B, C_ref, M, N, K);
@@ -53,8 +51,6 @@ int main() {
 
     double FLOP = 2 * (double)M * N * K;
     for (int i = 0; i < NITER; i++) {
-        init_const(C, 0.0, M, N);
-
         uint64_t start = timer();
         MATMUL_VER(A, B, C, M, N, K);
         uint64_t end = timer();
@@ -66,7 +62,7 @@ int main() {
         printf("GFLOPS = %.3f\n", FLOPS / 1e9);
 
 #ifdef TEST
-        compare_mats(C, C_ref, M, N);
+        validate_mat(C, C_ref, M * N, 1e-4);
 #endif
         printf("\n");
     }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <immintrin.h>
+#include <stdint.h>
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
@@ -10,7 +11,7 @@
 static float blockA_buffer[BLOCK_A_MAXSIZE] __attribute__((aligned(64)));
 static float blockB_buffer[BLOCK_B_MAXSIZE] __attribute__((aligned(64)));
 
-void copy_pad_blockA(float* A, float* blockA_packed, const int m, const int M, const int K) {
+void copy_pad_blockA(float* A, float* blockA_packed, int m, int M, int K) {
     for (int p = 0; p < K; p++) {
         for (int i = 0; i < m; i++) {
             *blockA_packed = A[p * M + i];
@@ -23,7 +24,7 @@ void copy_pad_blockA(float* A, float* blockA_packed, const int m, const int M, c
     }
 }
 
-void copy_pad_blockB(float* B, float* blockB_packed, const int n, const int N, const int K) {
+void copy_pad_blockB(float* B, float* blockB_packed, int n, int N, int K) {
     for (int j = 0; j < n; j++) {
         for (int p = 0; p < K; p++) {
             *blockB_packed = B[j * K + p];
@@ -112,9 +113,9 @@ void kernel_16x6(float* blockA,
     }
 }
 
-void matmul_pad(float* A, float* B, float* C, const int M, const int N, const int K) {
+void matmul_pad(float* A, float* B, float* C, int M, int N, int K) {
     for (int i = 0; i < M; i += 16) {
-        const int m = min(16, M - i);
+        int m = min(16, M - i);
         float* blockA = &A[i];
         int blockA_ld = M;
         if (m != 16) {
@@ -123,7 +124,7 @@ void matmul_pad(float* A, float* B, float* C, const int M, const int N, const in
             blockA_ld = 16;
         }
         for (int j = 0; j < N; j += 6) {
-            const int n = min(6, N - j);
+            int n = min(6, N - j);
             float* blockB = &B[j * K];
             if (n != 6) {
                 copy_pad_blockB(&B[j * K], blockB_buffer, n, N, K);
