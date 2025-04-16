@@ -10,40 +10,36 @@ int compare_floats(const void* a, const void* b) {
     return (fa > fb) - (fa < fb);
 }
 
-int calculate_niter(int matsize,
-                    int niter_start,
-                    int niter_end,
-                    int matsize_start,
-                    int matsize_end) {
+int get_niter(int matsize, int niter_start, int niter_end, int matsize_start, int matsize_end) {
 
-    if (matsize_end == matsize_start) return niter_start;
+    if (matsize_end == matsize_start || niter_start == niter_end) return niter_start;
     float a = ((float)niter_end - niter_start) * (matsize_start * matsize_end)
               / (matsize_start - matsize_end);
     float b = niter_start - a / matsize_start;
     return round(a / matsize + b);
 }
 
-void init_rand(float* mat, int n_elem) {
-    for (int i = 0; i < n_elem; i++) {
+void init_rand(float* mat, size_t n_elem) {
+    for (size_t i = 0; i < n_elem; i++) {
         mat[i] = rand() / (float)RAND_MAX;
     }
 }
 
-void init_const(float* mat, float value, int n_elem) {
-    for (int i = 0; i < n_elem; i++) {
+void init_const(float* mat, float value, size_t n_elem) {
+    for (size_t i = 0; i < n_elem; i++) {
         mat[i] = value;
     }
 }
 
-struct val_data {
+struct val_stat_t {
     int n_error;
     int n_nans;
     int n_inf;
 };
 
-struct val_data validate_mat(float* mat, float* mat_ref, int n_elem, float eps) {
-    struct val_data result = {0, 0, 0};
-    for (int i = 0; i < n_elem; i++) {
+struct val_stat_t validate_mat(float* mat, float* mat_ref, size_t n_elem, float eps) {
+    struct val_stat_t result = {0, 0, 0};
+    for (size_t i = 0; i < n_elem; i++) {
         float value = mat[i];
         float value_ref = mat_ref[i];
         if (isnan(value)) {
@@ -51,12 +47,12 @@ struct val_data validate_mat(float* mat, float* mat_ref, int n_elem, float eps) 
             result.n_error += 1;
             continue;
         }
-        if (isinf(value_ref)) {
+        if (isinf(value)) {
             result.n_inf += 1;
             result.n_error += 1;
             continue;
         }
-        if (fabsf(value - value_ref) / value_ref > eps) {
+        if (fabsf((value - value_ref) / value_ref) > eps) {
             result.n_error += 1;
             continue;
         }

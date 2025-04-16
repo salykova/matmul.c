@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 #endif
         matmul_naive(A, B, C_ref, m, n, k);
 
-        struct val_data result = validate_mat(C, C_ref, m * n, 1e-4);
+        struct val_stat_t result = validate_mat(C, C_ref, m * n, 1e-4);
         if (result.n_error > 0) {
             n_failed += 1;
             printf("Test #%i: FAILED\n", i + 1);

@@ -1,78 +1,71 @@
+#include "matmul.h"
 #include "utils.h"
 #include <assert.h>
 #include <immintrin.h>
 #include <stdio.h>
-
-#ifdef OPENBLAS
-    #include <cblas.h>
-#else
-    #include "matmul.h"
-#endif
+#include <string.h>
+#include <sys/stat.h>
 
 #define MEMALIGN  64
 #define max(x, y) ((x) > (y) ? (x) : (y))
 
 int main(int argc, char* argv[]) {
     srand(time(NULL));
-    int MINSIZE = 200;
-    int STEPSIZE = 200;
-    int NPTS = 40;
-    int WNITER = 5;
-    int NITER_START = 1001;
-    int NITER_END = 5;
+    int minsize = 200;
+    int stepsize = 200;
+    int npts = 40;
+    int wniter = 5;
+    int niter_start = 1001;
+    int niter_end = 5;
+    char* save_dir = "benchmark_results";
 
-    if (argc > 6) {
-        MINSIZE = atoi(argv[1]);
-        STEPSIZE = atoi(argv[2]);
-        NPTS = atoi(argv[3]);
-        WNITER = atoi(argv[4]);
-        NITER_START = atoi(argv[5]);
-        NITER_END = atoi(argv[6]);
+    if (argc > 7) {
+        minsize = atoi(argv[1]);
+        stepsize = atoi(argv[2]);
+        npts = atoi(argv[3]);
+        wniter = atoi(argv[4]);
+        niter_start = atoi(argv[5]);
+        niter_end = atoi(argv[6]);
+        save_dir = argv[7];
     }
 
-    assert(NPTS > 0 && MINSIZE > 0 && STEPSIZE > 0 && NPTS > 0 && (NITER_START >= NITER_END));
+    assert(wniter >= 0 && npts > 0 && minsize > 0 && stepsize > 0 && (niter_start >= niter_end));
 
     // Warm-up
-    int wmatsize = MINSIZE + (int)(NPTS / 2) * STEPSIZE;
-    printf("================\n");
-    printf("Warm-up: m=n=k=%i\n", wmatsize);
-    float* A = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
-    float* B = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
-    float* C = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    int wmatsize = minsize + (int)(npts / 2) * stepsize;
     int m = wmatsize;
     int n = wmatsize;
     int k = wmatsize;
-    for (int j = 0; j < WNITER; j++) {
+    float* A = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    float* B = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    float* C = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+
+    printf("================\n");
+    printf("Warm-up: m=n=k=%i\n", wmatsize);
+
+    for (int j = 0; j < wniter; j++) {
         fflush(stdout);
-        printf("\r%i / %i", j + 1, WNITER);
-#ifdef OPENBLAS
-        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, A, m, B, k, 0.0, C, m);
-#else
+        printf("\r%i / %i", j + 1, wniter);
         matmul(A, B, C, m, n, k);
-#endif
     }
+
     printf("\n");
     _mm_free(A);
     _mm_free(B);
     _mm_free(C);
 
     // Benchmark
-    printf("==========================\n");
-#ifdef OPENBLAS
-    printf("Benchmarking OpenBLAS\n");
-#else
-    printf("Benchmarking matmul.c\n");
-#endif
-    printf("==========================\n");
-
-    int* gflops_median_all = (int*)malloc(NPTS * sizeof(int));
-    int* gflops_max_all = (int*)malloc(NPTS * sizeof(int));
-    int* matsizes = (int*)malloc(NPTS * sizeof(int));
-    for (int i = 0; i < NPTS; i++) {
-        matsizes[i] = MINSIZE + i * STEPSIZE;
+    int* gflops_all = (int*)malloc(npts * sizeof(int));
+    int* matsizes = (int*)malloc(npts * sizeof(int));
+    for (int i = 0; i < npts; i++) {
+        matsizes[i] = minsize + i * stepsize;
     }
 
-    for (int i = 0; i < NPTS; i++) {
+    printf("==========================\n");
+    printf("Benchmark\n");
+    printf("==========================\n");
+
+    for (int i = 0; i < npts; i++) {
         int matsize = matsizes[i];
         int m = matsize;
         int n = matsize;
@@ -85,57 +78,55 @@ int main(int argc, char* argv[]) {
         init_rand(A, matsize * matsize);
         init_rand(B, matsize * matsize);
 
-        int n_iter =
-            max(1, calculate_niter(matsize, NITER_START, NITER_END, MINSIZE, matsizes[NPTS - 1]));
-        float* runtimes = (float*)malloc(n_iter * sizeof(float));
-        double FLOP = 2 * (double)matsize * matsize * matsize;
+        int n_iter = max(1,
+                         get_niter(matsize, niter_start, niter_end, minsize, matsizes[npts - 1]));
 
+        uint64_t start = timer();
         for (int j = 0; j < n_iter; j++) {
-            uint64_t start = timer();
-#ifdef OPENBLAS
-            cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A, m, B, k, 0, C, m);
-#else
             matmul(A, B, C, m, n, k);
-#endif
-            uint64_t end = timer();
-            runtimes[j] = (end - start) * 1e-9;
         }
+        uint64_t end = timer();
 
-        qsort(runtimes, n_iter, sizeof(float), compare_floats);
-        float runtime_median = n_iter % 2 == 0 ?
-                                   (runtimes[n_iter / 2] + runtimes[n_iter / 2 - 1]) / 2 :
-                                   runtimes[n_iter / 2];
-        int gflops_median = (int)(FLOP / (double)runtime_median / 1e9);
-        int gflops_max = (int)(FLOP / (double)runtimes[0] / 1e9);
-        gflops_max_all[i] = gflops_max;
-        gflops_median_all[i] = gflops_median;
+        double exec_time = (end - start) * 1e-9 / n_iter;
+        double FLOP = 2 * (double)matsize * matsize * matsize;
+        int gflops = (int)(FLOP / exec_time / 1e9);
+        gflops_all[i] = gflops;
 
-        printf("m=n=k=%i | PEAK/MEDIAN GFLOPS = %i/%i\n", matsize, gflops_max, gflops_median);
+        printf("m=n=k=%i | GFLOPS = %i\n", matsize, gflops);
         _mm_free(A);
         _mm_free(B);
         _mm_free(C);
-        free(runtimes);
     }
     printf("\n================\n");
+
+    struct stat buffer;
+    if (stat(save_dir, &buffer) == -1) {
+        int status = mkdir(save_dir, 0700);
+        if (status != 0) {
+            printf("Error creating directory %s\n", save_dir);
+            return -1;
+        }
+    }
+
+    char* filename = "matmul.txt";
+    char* save_path = malloc(strlen(save_dir) + strlen(filename) + 2);
+    strcpy(save_path, save_dir);
+    strcat(save_path, "/");
+    strcat(save_path, filename);
+
     FILE* fptr;
-#ifdef OPENBLAS
-    const char* filename = "benchmark_openblas.txt";
-#else
-    const char* filename = "benchmark_matmul.txt";
-#endif
-    fptr = fopen(filename, "w");
+    fptr = fopen(save_path, "w");
     if (fptr == NULL) {
-        printf("Error opening the file %s\n", filename);
+        printf("Error opening file %s\n", filename);
         return -1;
     }
-    for (int i = 0; i < NPTS; i++) {
-        fprintf(fptr, "%i %i %i\n", matsizes[i], gflops_max_all[i], gflops_median_all[i]);
+    for (int i = 0; i < npts; i++) {
+        fprintf(fptr, "%i %i\n", matsizes[i], gflops_all[i]);
     }
     fclose(fptr);
-    printf("Saved in %s\n", filename);
+    printf("Saved in %s\n", save_path);
 
-    free(gflops_max_all);
-    free(gflops_median_all);
+    free(gflops_all);
     free(matsizes);
     return 0;
 }
