@@ -8,7 +8,7 @@
 
 #ifdef INTEL_PROC
     #define MC              (16 * NTHREADS * 2)
-    #define NC              (6 * NTHREADS * 50)
+    #define NC              (6 * NTHREADS * 60)
     #define KC              500
     #define OMP_PRAGMA_MAIN _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")
     #define OMP_PRAGMA_PACK _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")

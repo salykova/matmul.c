@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -64,4 +65,10 @@ uint64_t timer() {
     struct timespec start;
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     return (uint64_t)start.tv_sec * 1000000000 + (uint64_t)start.tv_nsec;
+}
+
+void printfn(const char* str, int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%s", str);
+    }
 }

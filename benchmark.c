@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     int minsize = 200;
     int stepsize = 200;
     int npts = 40;
-    int wniter = 5;
+    int warmup_niter = 5;
     int niter_start = 1001;
     int niter_end = 5;
     char* save_dir = "benchmark_results";
@@ -23,36 +23,46 @@ int main(int argc, char* argv[]) {
         minsize = atoi(argv[1]);
         stepsize = atoi(argv[2]);
         npts = atoi(argv[3]);
-        wniter = atoi(argv[4]);
+        warmup_niter = atoi(argv[4]);
         niter_start = atoi(argv[5]);
         niter_end = atoi(argv[6]);
         save_dir = argv[7];
     }
 
-    assert(wniter >= 0 && npts > 0 && minsize > 0 && stepsize > 0 && (niter_start >= niter_end));
+    assert(warmup_niter >= 0 && npts > 0 && minsize > 0 && stepsize > 0
+           && (niter_start >= niter_end));
 
+    int divider_len = 30;
     // Warm-up
-    int wmatsize = minsize + (int)(npts / 2) * stepsize;
-    int m = wmatsize;
-    int n = wmatsize;
-    int k = wmatsize;
-    float* A = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
-    float* B = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
-    float* C = (float*)_mm_malloc(wmatsize * wmatsize * sizeof(float), MEMALIGN);
+    if (warmup_niter > 0) {
+        int warmup_matsize = minsize + (int)(npts / 2) * stepsize;
+        int m = warmup_matsize;
+        int n = warmup_matsize;
+        int k = warmup_matsize;
+        float* A = (float*)_mm_malloc(warmup_matsize * warmup_matsize * sizeof(float), MEMALIGN);
+        float* B = (float*)_mm_malloc(warmup_matsize * warmup_matsize * sizeof(float), MEMALIGN);
+        float* C = (float*)_mm_malloc(warmup_matsize * warmup_matsize * sizeof(float), MEMALIGN);
 
-    printf("================\n");
-    printf("Warm-up: m=n=k=%i\n", wmatsize);
+        const char* warmup_title = "Warm-up";
+        int warmup_title_padding = divider_len / 2 + strlen(warmup_title) / 2;
 
-    for (int j = 0; j < wniter; j++) {
-        fflush(stdout);
-        printf("\r%i / %i", j + 1, wniter);
-        matmul(A, B, C, m, n, k);
+        printfn("=", divider_len);
+        printf("\n");
+        printf("%*s\n", warmup_title_padding, warmup_title);
+        printfn("=", divider_len);
+        printf("\n");
+
+        for (int j = 0; j < warmup_niter; j++) {
+            fflush(stdout);
+            printf("\rm=n=k=%i: %i / %i", warmup_matsize, j + 1, warmup_niter);
+            matmul(A, B, C, m, n, k);
+        }
+
+        printf("\n\n");
+        _mm_free(A);
+        _mm_free(B);
+        _mm_free(C);
     }
-
-    printf("\n");
-    _mm_free(A);
-    _mm_free(B);
-    _mm_free(C);
 
     // Benchmark
     int* gflops_all = (int*)malloc(npts * sizeof(int));
@@ -61,9 +71,13 @@ int main(int argc, char* argv[]) {
         matsizes[i] = minsize + i * stepsize;
     }
 
-    printf("==========================\n");
-    printf("Benchmark\n");
-    printf("==========================\n");
+    printfn("=", divider_len);
+    printf("\n");
+    const char* bench_title = "Benchmark: GEMM";
+    int bench_title_padding = divider_len / 2 + strlen(bench_title) / 2;
+    printf("%*s\n", bench_title_padding, bench_title);
+    printfn("=", divider_len);
+    printf("\n");
 
     for (int i = 0; i < npts; i++) {
         int matsize = matsizes[i];
@@ -108,7 +122,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    char* filename = "matmul.txt";
+    char* filename = "GEMM.txt";
     char* save_path = malloc(strlen(save_dir) + strlen(filename) + 2);
     strcpy(save_path, save_dir);
     strcat(save_path, "/");

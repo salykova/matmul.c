@@ -32,13 +32,15 @@ int main(int argc, char* argv[]) {
     strcpy(buffer, "plot ");
     while ((dir = readdir(d)) != NULL) {
         if (dir->d_type == DT_REG) {
+            char* title = strndup(dir->d_name, strchr(dir->d_name, '.') - dir->d_name);
             strcat(buffer, "\"");
             strcat(buffer, bench_dir);
             strcat(buffer, "/");
             strcat(buffer, dir->d_name);
             strcat(buffer, "\" using 1:2 title \"");
-            strcat(buffer, dir->d_name);
+            strcat(buffer, title);
             strcat(buffer, "\" with lines lw 2, ");
+            free(title);
         }
     }
     gnu_commands[i] = buffer;
