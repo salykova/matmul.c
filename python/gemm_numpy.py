@@ -4,12 +4,12 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--minsize", type=int, default=200)
-parser.add_argument("--stepsize", type=int, default=200)
-parser.add_argument("--npts", type=int, default=40)
-parser.add_argument("--wniter", type=int, default=5)
-parser.add_argument("--niter_start", type=int, default=1001)
-parser.add_argument("--niter_end", type=int, default=5)
+parser.add_argument("--minsize", type=int, default=500)
+parser.add_argument("--stepsize", type=int, default=500)
+parser.add_argument("--npts", type=int, default=16)
+parser.add_argument("--wniter", type=int, default=20)
+parser.add_argument("--niter_start", type=int, default=1000)
+parser.add_argument("--niter_end", type=int, default=4)
 parser.add_argument("--save_dir", type=str, default="benchmark_data")
 
 

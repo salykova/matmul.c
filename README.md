@@ -1,34 +1,27 @@
-# High-Performance FP32 Matrix Multiplication on x86 CPUs
+# Advanced GEMM Optimization on Modern Multi-Core x86 Processors
 
-> **Important note:** Please don’t expect peak performance without fine-tuning hyperparameters such as the *number of threads, kernel size and block sizes*, unless you're running it on a Ryzen 9700X. Current parallelization strategy is optimized for desktop CPUs. For many-core server processors, consider using nested parallelism and parallelizing 2-3 loops to increase the performance.
+> **Important note:** in the current implementation, the *multithreading strategy, number of threads and tile sizes* have been specifically optimized for AMD Ryzen 7 9700X and Intel Core Ultra 265 processors to achieve maximum performance. Depending on your CPU, you may need to fine-tune these parameters and choose an alternative parallelization strategy for optimal performance. More details can be found in the [tutorial](https://salykova.github.io/matmul-cpu). For instance, on many-core server processors, it’s recommended to use nested parallelism and to parallelize multiple loops around the micro-kernel.
 
 ## Key Features
 
-- Optimized for x86 desktop CPUs with FMA3 and AVX2 instructions
-- Faster than OpenBLAS and MKL
+- Performance comparable to modern BLAS libraries
+- Simple and compact implementation in C, no assembly code
 - Step by step, beginner-friendly [tutorial](https://salykova.github.io/matmul-cpu)
-- Simple and compact implementation
 - Multithreading via OpenMP
 - High-level design follows [BLIS](https://github.com/flame/blis)
 
 ## Installation
 
 Install the following packages via `apt` if you are using a Debian-based Linux distribution
+
 ```bash
 sudo apt-get install cmake build-essential gnuplot libomp-dev
 ```
 
-### Optional
-
-To benchmark OpenBLAS, make sure you've installed it according to the [installation guide](https://github.com/OpenMathLib/OpenBLAS/wiki/Installation-Guide). During installation, choose `TARGET` corresponding to your CPU and disable AVX512 instructions. For instance, if you're using Zen4/5 CPUs, compile OpenBLAS with:
-```bash
-make TARGET=ZEN
-```
-Otherwise, OpenBLAS defaults to AVX512 instructions available on Zen4/5 CPUs.
-
 ## Performance
 
-Test enviroment:
+Test environment:
+
 - CPU: AMD Ryzen 7 9700X
 - RAM: 32GB DDR5 6000 MHz CL36
 - OpenBLAS v.0.3.26
@@ -39,25 +32,20 @@ Test enviroment:
   <img src="assets/9700x.png" alt="openblas" width="80%">
 </p>
 
-To benchmark the custom implementation, run
+To benchmark the implementation, run
 ```bash
-bash scripts/benchmark.sh NTHREADS
-```
-Set `NTHREADS` according to your CPU. For example, for Ryzen 9700X  use `NTHREADS=16`. The benchmark parameters such as `MINSIZE`, `STEPSIZE`, `NPTS` and etc. can be adjusted in `benchmark.sh`.
-
-### Optional
-
-Benchmark OpenBLAS using the following command
-```bash
-bash scripts/benchmark_openblas.sh PATH_TO_OPENBLAS
+bash scripts/benchmark.sh NTHREADS 0
 ```
 
-Run the following command to plot benchmark results:
+for AMD, or
+
 ```bash
-bash scripts/plot_data.sh
+bash scripts/benchmark.sh NTHREADS 1
 ```
+
+for Intel CPUs. Set `NTHREADS` according to your CPU and fine-tune the tile sizes `MC, NC, KC`. The benchmark parameters such as `MINSIZE`, `STEPSIZE`, `NPTS` and etc. can be adjusted in `benchmark.sh`.
 
 ## Tests
 ```bash
-bash scripts/test.sh NTHREADS
+bash scripts/test.sh NTHREADS 0/1
 ```
