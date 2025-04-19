@@ -10,7 +10,7 @@
 - Multithreading via OpenMP
 - High-level design follows [BLIS](https://github.com/flame/blis)
 
-## Installation
+## Prerequisites
 
 Install the following packages via `apt` if you are using a Debian-based Linux distribution
 
