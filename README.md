@@ -22,30 +22,43 @@ sudo apt-get install cmake build-essential gnuplot libomp-dev
 
 Test environment:
 
-- CPU: AMD Ryzen 7 9700X
-- RAM: 32GB DDR5 6000 MHz CL36
-- OpenBLAS v.0.3.26
+- CPUs: AMD Ryzen 7 9700X @ 90W, Intel Core Ultra 265 @ 90W
+- RAM: DDR5 7000 MHz CL36
 - Compiler: GCC 13.3.0
 - OS: Ubuntu Ubuntu 24.04.1 LTS
 
 <p align="center">
-  <img src="assets/9700x.png" alt="openblas" width="80%">
+  <img src="assets/intel_core.png" alt="openblas" width="80%">
 </p>
 
-To benchmark the implementation, run
+<p align="center">
+  <img src="assets/amd_ryzen.png" alt="openblas" width="80%">
+</p>
+
+To benchmark the implementation, use the following commands:
+
+- For AMD processors
+
 ```bash
 bash scripts/benchmark.sh NTHREADS 0
 ```
 
-for AMD, or
+- For Intel processors
 
 ```bash
 bash scripts/benchmark.sh NTHREADS 1
 ```
 
-for Intel CPUs. Set `NTHREADS` according to your CPU and fine-tune the tile sizes `MC, NC, KC`. The benchmark parameters such as `MINSIZE`, `STEPSIZE`, `NPTS` and etc. can be adjusted in `benchmark.sh`.
+Replace `NTHREADS` with the number of threads supported by your CPU. For example, on an Intel Core Ultra 265 you might use:
+
+```bash
+bash scripts/benchmark.sh 20 1
+```
+
+For optimal performance fine-tune the tile sizes `MC, NC, KC` in `src/matmul.c`. The benchmark parameters such as `MINSIZE`, `STEPSIZE`, `NPTS` and etc. can be adjusted in `scripts/benchmark.sh`.
 
 ## Tests
+
 ```bash
 bash scripts/test.sh NTHREADS 0/1
 ```

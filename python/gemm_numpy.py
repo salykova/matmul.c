@@ -7,9 +7,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--minsize", type=int, default=500)
 parser.add_argument("--stepsize", type=int, default=500)
 parser.add_argument("--npts", type=int, default=16)
-parser.add_argument("--wniter", type=int, default=20)
+parser.add_argument("--wniter", type=int, default=40)
 parser.add_argument("--niter_start", type=int, default=1000)
-parser.add_argument("--niter_end", type=int, default=4)
+parser.add_argument("--niter_end", type=int, default=8)
 parser.add_argument("--save_dir", type=str, default="benchmark_data")
 
 
@@ -24,21 +24,22 @@ def get_niter(matsize, niter_start, niter_end, matsize_start, matsize_end):
 if __name__ == "__main__":
     args = parser.parse_args()
     dtype = np.float32
+    order = 'F'
 
     sep = 30
     if args.wniter > 0:
-        wmatsize = args.minsize + (args.npts // 2) * args.stepsize
+        wmatsize = (args.npts // 2) * args.stepsize
         m = n = k = wmatsize
-        A = np.random.randn(m, k).astype(dtype)
-        B = np.random.randn(k, n).astype(dtype)
-        C = np.zeros((k, n)).astype(dtype)
+        A = np.asarray(np.random.randn(m, k), dtype=dtype, order=order)
+        B = np.asarray(np.random.randn(k, n), dtype=dtype, order=order)
+        C = np.asarray(np.random.randn(m, n), dtype=dtype, order=order)
 
         print(sep * "=")
         print("Warm-up".center(sep))
         print(sep * "=")
 
         for i in range(args.wniter):
-            np.matmul(A, B, out=C)
+            np.matmul(A, B, out=C, order=order)
             print(f"m=n=k={wmatsize}: {i + 1}/{args.wniter}", end="\r")
         print("\n")
 
@@ -51,14 +52,14 @@ if __name__ == "__main__":
 
     for matsize in matsizes:
         m = n = k = matsize
-        A = np.random.randn(m, k).astype(dtype)
-        B = np.random.randn(k, n).astype(dtype)
-        C = np.zeros((m, n)).astype(dtype)
+        A = np.asarray(np.random.randn(m, k), dtype=dtype, order=order)
+        B = np.asarray(np.random.randn(k, n), dtype=dtype, order=order)
+        C = np.asarray(np.random.randn(m, n), dtype=dtype, order=order)
 
         n_iter = get_niter(matsize, args.niter_start, args.niter_end, matsizes[0], matsizes[-1])
         st = time.perf_counter()
         for _ in range(n_iter):
-            np.matmul(A, B, out=C)
+            np.matmul(A, B, out=C, order=order)
         et = time.perf_counter()
 
         elapsed_time_s = (et - st) / n_iter

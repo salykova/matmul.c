@@ -24,10 +24,8 @@ int main(int argc, char* argv[]) {
     gnu_commands[1] = "set key right bottom";
     gnu_commands[2] = "set grid";
     gnu_commands[3] = "set ylabel \"GFLOPS\" font \",11\"";
-    gnu_commands[4] = "set xlabel \"m=n=k\" font \",11\"";
-    gnu_commands[5] = "";
+    gnu_commands[4] = "set xlabel \"M=N=K\" font \",11\"";
 
-    int i = 5;
     char buffer[10000];
     strcpy(buffer, "plot ");
     while ((dir = readdir(d)) != NULL) {
@@ -43,7 +41,7 @@ int main(int argc, char* argv[]) {
             free(title);
         }
     }
-    gnu_commands[i] = buffer;
+    gnu_commands[5] = buffer;
     closedir(d);
 
     FILE* gnupipe = NULL;
