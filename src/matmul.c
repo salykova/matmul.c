@@ -64,6 +64,10 @@ void pack_blockA(float* A, float* blockA_packed, int mc, int kc, int M) {
 }
 
 void matmul(float* A, float* B, float* C, int M, int N, int K) {
+
+    // The function computes C[M x N] = A[M x K] @ B[K x N]
+    // All operands are stored in column-major format, with lda=M, ldb=K, ldc=M
+
     for (int j = 0; j < N; j += NC) {
         int nc = min(NC, N - j);
         int kc = min(KC, K);
