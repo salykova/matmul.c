@@ -28,11 +28,11 @@ Test environment:
 - OS: Ubuntu Ubuntu 24.04.1 LTS
 
 <p align="center">
-  <img src="assets/intel_core.png" alt="openblas" width="80%">
+  <img src="assets/intel_core.png" alt="openblas" width="70%">
 </p>
 
 <p align="center">
-  <img src="assets/amd_ryzen.png" alt="openblas" width="80%">
+  <img src="assets/amd_ryzen.png" alt="openblas" width="70%">
 </p>
 
 To benchmark the implementation, use the following commands:
