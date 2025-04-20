@@ -3,19 +3,17 @@
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
 #ifndef NTHREADS
-    #define NTHREADS 16
+    #define NTHREADS 8
 #endif
 
+#define MC (16 * (40 / NTHREADS) * NTHREADS)
+#define NC (6 * (320 / NTHREADS) * NTHREADS)
+#define KC 500
+
 #ifdef INTEL_PROC
-    #define MC              (16 * NTHREADS * 2)
-    #define NC              (6 * NTHREADS * 40)
-    #define KC              500
     #define OMP_PRAGMA_MAIN _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")
     #define OMP_PRAGMA_PACK _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")
 #else
-    #define MC              (16 * NTHREADS * 5)
-    #define NC              (6 * NTHREADS * 50)
-    #define KC              500
     #define OMP_PRAGMA_MAIN _Pragma("omp parallel for collapse(2) num_threads(NTHREADS)")
     #define OMP_PRAGMA_PACK _Pragma("omp parallel for num_threads(NTHREADS)")
 #endif
