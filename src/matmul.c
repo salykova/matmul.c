@@ -7,7 +7,7 @@
 #endif
 
 #define MC (16 * (40 / NTHREADS) * NTHREADS)
-#define NC (6 * (320 / NTHREADS) * NTHREADS)
+#define NC (6 * (800 / NTHREADS) * NTHREADS)
 #define KC 500
 
 #ifdef INTEL_PROC
