@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     int divider_len = 30;
     // Warm-up
     if (warmup_niter > 0) {
-        int warmup_matsize = (int)(npts / 2) * stepsize;
+        int warmup_matsize = minsize + (int)(npts / 2 - 1) * stepsize;
         int m = warmup_matsize;
         int n = warmup_matsize;
         int k = warmup_matsize;

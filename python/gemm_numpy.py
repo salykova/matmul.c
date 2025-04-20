@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     sep = 30
     if args.wniter > 0:
-        wmatsize = (args.npts // 2) * args.stepsize
+        wmatsize = args.minsize + ((args.npts // 2)-1) * args.stepsize
         m = n = k = wmatsize
         A = np.asarray(np.random.randn(m, k), dtype=dtype, order=order)
         B = np.asarray(np.random.randn(k, n), dtype=dtype, order=order)
