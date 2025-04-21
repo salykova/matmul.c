@@ -14,6 +14,8 @@
     #define OMP_SCHEDULE auto
 #endif
 
+#define PRAGMA_OMP_PARALLEL_FOR _Pragma("omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)")
+
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
 static float blockA_packed[MC * KC] __attribute__((aligned(64)));
@@ -31,7 +33,7 @@ void pack_panelB(float* B, float* blockB_packed, int nr, int kc, int K) {
 }
 
 void pack_blockB(float* B, float* blockB_packed, int nc, int kc, int K) {
-#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
+    PRAGMA_OMP_PARALLEL_FOR
     for (int j = 0; j < nc; j += 6) {
         int nr = min(6, nc - j);
         pack_panelB(&B[j * K], &blockB_packed[j * kc], nr, kc, K);
@@ -50,7 +52,7 @@ void pack_panelA(float* A, float* blockA_packed, int mr, int kc, int M) {
 }
 
 void pack_blockA(float* A, float* blockA_packed, int mc, int kc, int M) {
-#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
+    PRAGMA_OMP_PARALLEL_FOR
     for (int i = 0; i < mc; i += 16) {
         int mr = min(16, mc - i);
         pack_panelA(&A[i], &blockA_packed[i * kc], mr, kc, M);
@@ -69,7 +71,7 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
         for (int i = 0; i < M; i += MC) {
             int mc = min(MC, M - i);
             pack_blockA(&A[i], blockA_packed, mc, kc, M);
-#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
+            PRAGMA_OMP_PARALLEL_FOR
             for (int jr = 0; jr < nc; jr += 6) {
                 int nr = min(6, nc - jr);
                 for (int ir = 0; ir < mc; ir += 16) {
@@ -90,7 +92,7 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
             for (int i = 0; i < M; i += MC) {
                 int mc = min(MC, M - i);
                 pack_blockA(&A[p * M + i], blockA_packed, mc, kc, M);
-#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
+                PRAGMA_OMP_PARALLEL_FOR
                 for (int jr = 0; jr < nc; jr += 6) {
                     int nr = min(6, nc - jr);
                     for (int ir = 0; ir < mc; ir += 16) {
