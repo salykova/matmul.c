@@ -4,8 +4,9 @@ if((NOT DEFINED NTHREADS) OR (NTHREADS STREQUAL ""))
   message(FATAL_ERROR "Error, please specify the number of threads!")
 endif()
 
-if(INTEL_PROC)
-  add_definitions(-DINTEL_PROC)
-endif(INTEL_PROC)
+if((NOT DEFINED OMP_SCHEDULE) OR (OMP_SCHEDULE STREQUAL ""))
+  set(OMP_SCHEDULE "auto")
+  message(WARNING "OMP_SCHEDULE was not specified, set to \"auto\"")
+endif()
 
-target_compile_definitions(matmul PRIVATE NTHREADS=${NTHREADS})
+target_compile_definitions(matmul PRIVATE OMP_SCHEDULE=${OMP_SCHEDULE} NTHREADS=${NTHREADS})

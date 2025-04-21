@@ -9,8 +9,6 @@ include_directories("${PROJECT_SOURCE_DIR}/common")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 add_subdirectory(src)
 
-option(INTEL_PROC "" OFF)
-
 add_executable(benchmark benchmark.c)
 add_executable(test_matmul test.c)
 add_executable(plot_data plot_data.c)

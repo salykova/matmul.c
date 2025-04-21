@@ -10,12 +10,8 @@
 #define NC (6 * (800 / NTHREADS) * NTHREADS)
 #define KC 500
 
-#ifdef INTEL_PROC
-    #define OMP_PRAGMA_MAIN _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")
-    #define OMP_PRAGMA_PACK _Pragma("omp parallel for num_threads(NTHREADS) schedule(dynamic)")
-#else
-    #define OMP_PRAGMA_MAIN _Pragma("omp parallel for collapse(2) num_threads(NTHREADS)")
-    #define OMP_PRAGMA_PACK _Pragma("omp parallel for num_threads(NTHREADS)")
+#ifndef OMP_SCHEDULE
+    #define OMP_SCHEDULE auto
 #endif
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
@@ -35,7 +31,7 @@ void pack_panelB(float* B, float* blockB_packed, int nr, int kc, int K) {
 }
 
 void pack_blockB(float* B, float* blockB_packed, int nc, int kc, int K) {
-    OMP_PRAGMA_PACK
+#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
     for (int j = 0; j < nc; j += 6) {
         int nr = min(6, nc - j);
         pack_panelB(&B[j * K], &blockB_packed[j * kc], nr, kc, K);
@@ -54,7 +50,7 @@ void pack_panelA(float* A, float* blockA_packed, int mr, int kc, int M) {
 }
 
 void pack_blockA(float* A, float* blockA_packed, int mc, int kc, int M) {
-    OMP_PRAGMA_PACK
+#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
     for (int i = 0; i < mc; i += 16) {
         int mr = min(16, mc - i);
         pack_panelA(&A[i], &blockA_packed[i * kc], mr, kc, M);
@@ -73,8 +69,7 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
         for (int i = 0; i < M; i += MC) {
             int mc = min(MC, M - i);
             pack_blockA(&A[i], blockA_packed, mc, kc, M);
-#ifdef INTEL_PROC
-            OMP_PRAGMA_MAIN
+#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
             for (int jr = 0; jr < nc; jr += 6) {
                 int nr = min(6, nc - jr);
                 for (int ir = 0; ir < mc; ir += 16) {
@@ -88,22 +83,6 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
                                                 M);
                 }
             }
-#else
-            OMP_PRAGMA_MAIN
-            for (int ir = 0; ir < mc; ir += 16) {
-                for (int jr = 0; jr < nc; jr += 6) {
-                    int nr = min(6, nc - jr);
-                    int mr = min(16, mc - ir);
-                    kernel_16x6_zero_init_accum(&blockA_packed[ir * kc],
-                                                &blockB_packed[jr * kc],
-                                                &C[(j + jr) * M + (i + ir)],
-                                                mr,
-                                                nr,
-                                                kc,
-                                                M);
-                }
-            }
-#endif
         }
         for (int p = kc; p < K; p += KC) {
             int kc = min(KC, K - p);
@@ -111,8 +90,7 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
             for (int i = 0; i < M; i += MC) {
                 int mc = min(MC, M - i);
                 pack_blockA(&A[p * M + i], blockA_packed, mc, kc, M);
-#ifdef INTEL_PROC
-                OMP_PRAGMA_MAIN
+#pragma omp parallel for schedule(OMP_SCHEDULE) num_threads(NTHREADS)
                 for (int jr = 0; jr < nc; jr += 6) {
                     int nr = min(6, nc - jr);
                     for (int ir = 0; ir < mc; ir += 16) {
@@ -126,22 +104,6 @@ void matmul(float* A, float* B, float* C, int M, int N, int K) {
                                                M);
                     }
                 }
-#else
-                OMP_PRAGMA_MAIN
-                for (int ir = 0; ir < mc; ir += 16) {
-                    for (int jr = 0; jr < nc; jr += 6) {
-                        int nr = min(6, nc - jr);
-                        int mr = min(16, mc - ir);
-                        kernel_16x6_load_accum(&blockA_packed[ir * kc],
-                                               &blockB_packed[jr * kc],
-                                               &C[(j + jr) * M + (i + ir)],
-                                               mr,
-                                               nr,
-                                               kc,
-                                               M);
-                    }
-                }
-#endif
             }
         }
     }

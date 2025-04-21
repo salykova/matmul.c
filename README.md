@@ -35,24 +35,16 @@ Test environment:
   <img src="assets/amd_ryzen.png" alt="openblas" width="70%">
 </p>
 
-To benchmark the implementation, use the following commands:
-
-- For AMD processors
+To benchmark the implementation, run the following script:
 
 ```bash
-bash scripts/benchmark.sh NTHREADS 0
+bash scripts/benchmark.sh NTHREADS OMP_SCHEDULE
 ```
 
-- For Intel processors
+Replace `NTHREADS` with the number of CPU cores (or CPU threads if your CPU supports hyper-threading). The variable `OMP_SCHEDULE` controls how loop iterations are distributed across threads aka load balancing. For Intel Core processors with P and E cores, use `OMP_SCHEDULE=dynamic`. For AMD processors, either `OMP_SCHEDULE=auto` or `OMP_SCHEDULE=static` typically yields better results. For example, on an Intel Core Ultra 265 use the following command:
 
 ```bash
-bash scripts/benchmark.sh NTHREADS 1
-```
-
-Replace `NTHREADS` with the number of threads supported by your CPU. For example, on an Intel Core Ultra 265 you might use:
-
-```bash
-bash scripts/benchmark.sh 20 1
+bash scripts/benchmark.sh 20 dynamic
 ```
 
 For optimal performance fine-tune the tile sizes `MC, NC, KC` in `src/matmul.c`. The benchmark parameters such as `MINSIZE`, `STEPSIZE`, `NPTS` and etc. can be adjusted in `scripts/benchmark.sh`.
@@ -60,5 +52,5 @@ For optimal performance fine-tune the tile sizes `MC, NC, KC` in `src/matmul.c`.
 ## Tests
 
 ```bash
-bash scripts/test.sh NTHREADS 0/1
+bash scripts/test.sh NTHREADS OMP_SCHEDULE
 ```
